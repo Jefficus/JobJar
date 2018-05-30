@@ -1,0 +1,275 @@
+#!/usr/bin/env python
+"""
+   jb:    A simple command-line interface for managing
+          multiple project to-do lists, creating note-histories
+          for tasks done, and piecing together a daily task list
+          from the "job jar" of todos still waiting to
+          be completed.
+
+          The system explicitly rejects the notion of due-dates,
+          dependencies, sub-tasks etc., since these are already
+          well covered by other tools.
+
+   Flags: A task can have any combination of three status flags.
+          Flags occur in any order at the start of the task label.
+          * marks a task as started or in-progress
+          ! marks a task as being actively worked on
+          ~ marks a project or task as sleeping
+
+          Sleeping projects and tasks are excluded from reports
+          unless the -a option is present.
+
+   Usage: 
+      jb [options] stats
+      jb [options] projects
+      jb [options] list [PROJ]
+      jb [options] active [PROJ]
+      jb [options] sleeping [PROJ]
+      jb [options] started [PROJ]
+      jb [options] add PROJ [JOBSTRING]
+      jb [options] del PROJ JOBID
+      jb [options] activate PROJ JOBID
+      jb [options] log PROJ JOBID MESSAGE
+      jb [options] finish PROJ JOBID
+      jb [options] sleep PROJ [JOBID]
+      jb [options] wake PROJ [JOBID]
+      jb -h | --help
+      jb -v | --verbose
+      jb -V | --version
+
+   Options:
+      -d     # Dump modified data file to STDOUT rather than writing to file
+      -a     # Report ALL projects/tasks, including ~-sleeping ones
+      -f FN  # Use FN as the todo file
+      -l FN  # Use FN as the log file
+      -v     # Display verbose output
+      -V     # Display version information
+
+   Created 2018 by Jefferson Smith <jefferson@smithicus.com>
+"""
+
+import os
+import re
+from docopt import docopt
+
+# process command line args
+args = docopt(__doc__, version='jb version 0.0.1')
+#print args
+
+def mention(outstr):
+    if args['-v']:
+        print outstr
+
+todo_file = "~/.jobs.jb"
+log_file = "~/.log.jb"
+
+if '-f' in args and args['-f']:
+   todo_file = args['-f']
+if '-l' in args and args['-l']:
+   log_file = args['-l']
+
+datachanged = False
+projects = []
+
+mention("Todo file: %s" % todo_file)
+mention("Log file: %s" % log_file)
+
+class Job(object):
+    def __init__(self, jobstr):
+        doflags = True
+        self.jobstr = ''
+        self.flags = ''
+        for c in jobstr:
+            if doflags: 
+                if c in "~*!":
+                    self.flags += c
+                else:
+                    self.jobstr += c
+                    doflags = False
+            else:
+                self.jobstr += c
+
+    def getLine(self):
+        return "%s%s" % (self.flags, self.jobstr)
+
+    def isSleeping(self):
+        return '~' in self.flags
+
+    def isStarted(self):
+        return '*' in self.flags
+
+    def isActive(self):
+        return '!' in self.flags
+
+    def isInScope(self):
+        return args['-a'] or not self.isSleeping()
+
+
+class Project(object):
+    def __init__(self, projtag):
+        self.projtag = projtag.strip()
+        self.jobs = []
+
+    def isInScope(self):
+        if args['PROJ']:
+            selector = args['PROJ'].lower()
+            mytag = self.projtag.lower()
+            if self.projtag.startswith('~'):
+                return selector in [mytag[1:], mytag] 
+            else:
+                return selector == mytag
+        else:
+            return not self.isSleeping() or args['-a']
+
+    def isSleeping(self):
+        return self.projtag.startswith('~')
+
+    def tagMatches(self, intag):
+        return self.projtag == intag or '~' + self.projtag == intag
+
+    def addJob(self, jobstr):
+        self.jobs.append( Job(jobstr) )
+
+    def getJobs(self):
+        return [j for j in self.jobs if j.isInScope()]
+
+    def getStartedJobs(self):
+        outs = []
+        return [j for j in self.jobs if j.isStarted() and j.isInScope()]
+
+    def getActiveJobs(self):
+        outs = []
+        return [j for j in self.jobs if j.isActive() and j.isInScope()]
+
+    def getSleepingJobs(self):
+        outs = []
+        return [j for j in self.jobs if j.isSleeping()]
+
+
+def GetProjectByTag(intag):
+    for p in projects:
+        if p.tagMatches(intag):
+            return p
+    return None
+
+# load all known projects and jobs
+proj = None
+with open(todo_file, 'r') as fh:
+    for l in fh.readlines():
+        line = l.strip()
+        m = re.match('\[(\S+)\]', line)
+        if m:
+            proj = Project(m.group(1))
+            projects.append(proj)
+        elif len(line):
+            proj.addJob(line)
+
+if args['projects']:
+    if args['-a']:
+        print "All projects"
+    else:
+        print "Current projects"
+    for p in projects:
+        if p.isInScope():
+            print "  %s" % p.projtag
+
+if args['list']:
+    for p in projects:
+        if p.isInScope():
+            print "%s" % p.projtag
+            for j in p.getJobs():
+                print "  %s" % j.getLine()
+            print
+
+
+if args['started']:
+    count = 0
+    for p in projects:
+        if p.isInScope():
+            jbs = p.getStartedJobs()
+            for j in jbs:
+                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                count += 1
+    if not count:
+        print "None".rjust(10)
+
+if args['active']:
+    count = 0
+    for p in projects:
+        if p.isInScope():
+            jbs = p.getActiveJobs()
+            for j in jbs:
+                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                count += 1
+    if not count:
+        print "None".rjust(10)
+
+if args['sleeping']:
+    count = 0
+    print "Sleeping Tasks:"
+    for p in projects:
+        if p.isInScope():
+            jbs = p.getSleepingJobs()
+            for j in jbs:
+                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                count += 1
+    if not count:
+        print "None".rjust(10)
+    print
+    print "Sleeping Projects:"
+    count = 0
+    for p in projects:
+        if p.isSleeping():
+            print "%s"% p.projtag.rjust(10)
+            count += 1
+    if not count:
+        print "None".rjust(10)
+
+if args['stats']:
+    jobcount = 0
+    startedcount = 0
+    sleepingcount = 0
+    activecount = 0
+    print "Projects: %d" % len(projects)
+    print "Sleeping Projects: %d" % len([p for p in projects if p.isSleeping()])
+    for p in projects:
+        jobcount += len(p.jobs)
+        for j in p.jobs:
+            if j.isSleeping():
+                sleepingcount += 1
+            if j.isStarted():
+                startedcount += 1
+            if j.isActive():
+                activecount += 1
+    print "Total Jobs: %d" % jobcount
+    print "Started Jobs: %d" % startedcount
+    print "Sleeping Jobs: %d" % sleepingcount
+    print "Active Jobs: %d" % activecount
+
+if args['add']:
+    p = GetProjectByTag(args['PROJ'])
+    if not p:
+        p = Project(args['PROJ'])
+        projects.append(p)
+        datachanged = 1
+    if args['JOBSTRING']:
+        p.addJob( args['JOBSTRING'] )
+        datachanged = 1
+
+# This should be the last thing
+if args['-d']:
+    for p in projects:
+        print "[%s]" % p.projtag
+        for j in p.jobs:
+            print j.getLine()
+        print
+elif datachanged:
+    with open(todo_file, 'w') as fh:
+        for p in projects:
+            fh.write("[%s]\n" % p.projtag)
+            for j in p.jobs:
+                fh.write("%s\n" % j.getLine())
+            fh.write("\n")
+    mention("Database updated.")
+else:
+    mention("Database unchanged.")

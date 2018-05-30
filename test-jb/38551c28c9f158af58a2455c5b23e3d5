@@ -1,0 +1,7 @@
+jb -f test-jb/data.jb projects -a
+All projects
+  Proj1
+  Proj2
+  ~ProjSleep
+  ~ProjSleep2
+  Proj3
