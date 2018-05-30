@@ -13,7 +13,7 @@
    Flags: A task can have any combination of three status flags.
           Flags occur in any order at the start of the task label.
           * marks a task as started or in-progress
-          ! marks a task as being actively worked on
+          ! marks a task as being picked for work today
           ~ marks a project or task as sleeping
 
           Sleeping projects and tasks are excluded from reports
@@ -23,18 +23,19 @@
       jb [options] stats
       jb [options] projects
       jb [options] list [PROJ]
-      jb [options] active [PROJ]
+      jb [options] picked [PROJ]
+      jb [options] today [PROJ]
       jb [options] sleeping [PROJ]
       jb [options] started [PROJ]
       jb [options] add PROJ [JOBSTRING]
-      jb [options] del PROJ JOBID
-      jb [options] activate PROJ JOBID
+      jb [options] delete PROJ JOBID
+      jb [options] pick PROJ JOBID
+      jb [options] unpick PROJ JOBID
       jb [options] log PROJ JOBID MESSAGE
       jb [options] finish PROJ JOBID
       jb [options] sleep PROJ [JOBID]
       jb [options] wake PROJ [JOBID]
       jb -h | --help
-      jb -v | --verbose
       jb -V | --version
 
    Options:
@@ -51,7 +52,9 @@
 
 import os
 import re
+import datetime
 from docopt import docopt
+
 
 # process command line args
 args = docopt(__doc__, version='jb version 0.0.1')
@@ -75,11 +78,23 @@ projects = []
 mention("Todo file: %s" % todo_file)
 mention("Log file: %s" % log_file)
 
+"""
+Format of log file:
+YYYY-MM-DD PROJ JOBID Message...
+"""
+
+def WriteLog(logfile, projtag, jobid, msg):
+    with open(logfile, 'a') as fh:
+        dt = datetime.datetime.now().strftime("%Y-%m-%d")
+        fh.write("%s %s %d %s\n" % (dt, projtag, jobid, msg))
+
+
 class Job(object):
-    def __init__(self, jobstr):
+    def __init__(self, jobstr, id):
         doflags = True
         self.jobstr = ''
         self.flags = ''
+        self.id = id 
         for c in jobstr:
             if doflags: 
                 if c in "~*!":
@@ -99,12 +114,19 @@ class Job(object):
     def isStarted(self):
         return '*' in self.flags
 
-    def isActive(self):
+    def isPicked(self):
         return '!' in self.flags
 
     def isInScope(self):
         return args['-a'] or not self.isSleeping()
 
+    def pick(self):
+        if '!' not in self.flags:
+            self.flags += '!'
+
+    def unpick(self):
+        if '!' in self.flags:
+            self.flags = self.flags.replace('!', '')
 
 class Project(object):
     def __init__(self, projtag):
@@ -126,21 +148,31 @@ class Project(object):
         return self.projtag.startswith('~')
 
     def tagMatches(self, intag):
-        return self.projtag == intag or '~' + self.projtag == intag
+        projtag = self.projtag.lower()
+        intag = intag.lower()
+        return projtag == intag or '~' + projtag == intag
 
     def addJob(self, jobstr):
-        self.jobs.append( Job(jobstr) )
+        j = Job(jobstr, len(self.jobs)+1) 
+        self.jobs.append(j)
+        return j
 
     def getJobs(self):
         return [j for j in self.jobs if j.isInScope()]
+
+    def getJobByID(self, id):
+        for j in self.jobs:
+            if j.id == id:
+                return j
+        return None
 
     def getStartedJobs(self):
         outs = []
         return [j for j in self.jobs if j.isStarted() and j.isInScope()]
 
-    def getActiveJobs(self):
+    def getPickedJobs(self):
         outs = []
-        return [j for j in self.jobs if j.isActive() and j.isInScope()]
+        return [j for j in self.jobs if j.isPicked() and j.isInScope()]
 
     def getSleepingJobs(self):
         outs = []
@@ -179,7 +211,7 @@ if args['list']:
         if p.isInScope():
             print "%s" % p.projtag
             for j in p.getJobs():
-                print "  %s" % j.getLine()
+                print "  (%d) %s" % (j.id, j.getLine())
             print
 
 
@@ -189,21 +221,21 @@ if args['started']:
         if p.isInScope():
             jbs = p.getStartedJobs()
             for j in jbs:
-                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
 
-if args['active']:
+if args['picked'] or args['today']:
     count = 0
     for p in projects:
         if p.isInScope():
-            jbs = p.getActiveJobs()
+            jbs = p.getPickedJobs()
             for j in jbs:
-                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
-        print "None".rjust(10)
+        print "No jobs picked for today."
 
 if args['sleeping']:
     count = 0
@@ -212,7 +244,7 @@ if args['sleeping']:
         if p.isInScope():
             jbs = p.getSleepingJobs()
             for j in jbs:
-                print "%s: %s"% (p.projtag.rjust(10), j.getLine())
+                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -230,7 +262,7 @@ if args['stats']:
     jobcount = 0
     startedcount = 0
     sleepingcount = 0
-    activecount = 0
+    pickedcount = 0
     print "Projects: %d" % len(projects)
     print "Sleeping Projects: %d" % len([p for p in projects if p.isSleeping()])
     for p in projects:
@@ -240,22 +272,81 @@ if args['stats']:
                 sleepingcount += 1
             if j.isStarted():
                 startedcount += 1
-            if j.isActive():
-                activecount += 1
+            if j.isPicked():
+                pickedcount += 1
     print "Total Jobs: %d" % jobcount
     print "Started Jobs: %d" % startedcount
     print "Sleeping Jobs: %d" % sleepingcount
-    print "Active Jobs: %d" % activecount
+    print "Picked Jobs: %d" % pickedcount
 
 if args['add']:
-    p = GetProjectByTag(args['PROJ'])
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
     if not p:
-        p = Project(args['PROJ'])
+        p = Project(projtag)
         projects.append(p)
         datachanged = 1
+        WriteLog(log_file, projtag, 0, "Project created")
     if args['JOBSTRING']:
-        p.addJob( args['JOBSTRING'] )
+        jstr = args['JOBSTRING']
+        j = p.addJob(jstr)
         datachanged = 1
+        WriteLog(log_file, p.projtag, j.id, "Job created: %s"%jstr)
+
+if args['delete']:
+    p = GetProjectByTag(args['PROJ'])
+    if not p:
+        print "No such project exists. Nothing to delete."
+        exit()
+    id = int(args['JOBID'])
+    if id > len(p.jobs):
+        print "No such JOBID (%d) in that project. Nothing to delete." % id
+        exit()
+    j = p.getJobByID(id)
+    print "Deleting job %d from project %s" % (id, args['PROJ'])
+    print j.getLine()
+    print "Or rather, I will once the actual delete code is working."
+    # WriteLog(log_file, p.projtag, j.id, "Job deleted.")
+
+if args['pick']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing to pick."
+        exit()
+    id = int(args['JOBID'])
+    if id > len(p.jobs):
+        print "No such jobid (%d) in that project. Nothing to pick." % id
+        exit()
+    j = p.getJobByID(id)
+    if j.isPicked():
+        print "That job is already picked."
+        exit()
+    print "Picking job %d from project %s" % (id, args['PROJ'])
+    j.pick()
+    print j.getLine()
+    datachanged = 1
+    WriteLog(log_file, p.projtag, j.id, "Job picked.")
+
+if args['unpick']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing to unpick."
+        exit()
+    id = int(args['JOBID'])
+    if id > len(p.jobs):
+        print "No such jobid (%d) in that project. Nothing to unpick." % id
+        exit()
+    j = p.getJobByID(id)
+    if not j.isPicked():
+        print "That job is not picked so it cannot be unpicked."
+        exit()
+    print "Unpicking job %d from project %s" % (id, args['PROJ'])
+    j.unpick()
+    print j.getLine()
+    datachanged = 1
+    WriteLog(log_file, p.projtag, j.id, "Job unpicked.")
 
 # This should be the last thing
 if args['-d']:
