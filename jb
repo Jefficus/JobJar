@@ -28,9 +28,9 @@
       jb [options] sleeping [PROJ]
       jb [options] started [PROJ]
       jb [options] add PROJ [JOBSTRING...]
-      jb [options] delete PROJ JOBID
       jb [options] pick PROJ JOBID
       jb [options] unpick PROJ JOBID
+      jb [options] delete PROJ JOBID
       jb [options] log PROJ JOBID MESSAGE
       jb [options] finish PROJ JOBID
       jb [options] sleep PROJ [JOBID]
@@ -156,6 +156,10 @@ class Project(object):
         j = Job(jobstr, len(self.jobs)+1) 
         self.jobs.append(j)
         return j
+
+    def removeJob(self, j):
+        if j in p.jobs:
+            p.jobs.remove(j)
 
     def getJobs(self):
         return [j for j in self.jobs if j.isInScope()]
@@ -347,6 +351,25 @@ if args['unpick']:
     print j.getLine()
     datachanged = 1
     WriteLog(log_file, p.projtag, j.id, "Job unpicked.")
+
+if args['finish']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing to finish."
+        exit()
+    id = int(args['JOBID'])
+    if id > len(p.jobs):
+        print "No such jobid (%d) in that project. Nothing to finish." % id
+        exit()
+    j = p.getJobByID(id)
+    if not j.isStarted():
+        mention("That job wasn't started. Marking it started and finished.")
+        WriteLog(log_file, p.projtag, j.id, "%s => STARTED"%j.getLine())
+    mention("Marking job %d from project %s as finished." % (id, projtag))
+    WriteLog(log_file, p.projtag, j.id, "%s => FINISHED"%j.getLine())
+    p.removeJob(j)
+    datachanged = 1
 
 # This should be the last thing
 if args['-d']:
