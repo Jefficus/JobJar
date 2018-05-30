@@ -60,8 +60,8 @@ def mention(outstr):
     if args['-v']:
         print outstr
 
-todo_file = "~/.jobs.jb"
-log_file = "~/.log.jb"
+todo_file = os.path.expanduser("~/.jobs.jb")
+log_file = os.path.expanduser("~/.log.jb")
 
 if '-f' in args and args['-f']:
    todo_file = args['-f']
