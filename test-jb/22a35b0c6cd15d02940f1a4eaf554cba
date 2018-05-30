@@ -1,0 +1,4 @@
+jb -f test-jb/data.jb active
+     Proj2: ! Today's new task
+     Proj2: !*An in-progress task revisited today
+     Proj3: ! New task for today in new project
