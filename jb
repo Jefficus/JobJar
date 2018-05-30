@@ -27,7 +27,7 @@
       jb [options] today [PROJ]
       jb [options] sleeping [PROJ]
       jb [options] started [PROJ]
-      jb [options] add PROJ [JOBSTRING]
+      jb [options] add PROJ [JOBSTRING...]
       jb [options] delete PROJ JOBID
       jb [options] pick PROJ JOBID
       jb [options] unpick PROJ JOBID
@@ -288,7 +288,7 @@ if args['add']:
         datachanged = 1
         WriteLog(log_file, projtag, 0, "Project created")
     if args['JOBSTRING']:
-        jstr = args['JOBSTRING']
+        jstr = ' '.join(args['JOBSTRING'])
         j = p.addJob(jstr)
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "Job created: %s"%jstr)
