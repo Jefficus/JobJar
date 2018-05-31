@@ -311,12 +311,12 @@ if args['add']:
         p = Project(projtag)
         projects.append(p)
         datachanged = 1
-        WriteLog(log_file, projtag, 0, "Project created")
+        WriteLog(log_file, projtag, 0, "CREATED")
     if args['JOBSTRING']:
         jstr = ' '.join(args['JOBSTRING'])
         j = p.addJob(jstr)
         datachanged = 1
-        WriteLog(log_file, p.projtag, j.id, "Job created: %s"%jstr)
+        WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
 
 if args['delete']:
     p = GetProjectByTag(args['PROJ'])
@@ -331,7 +331,7 @@ if args['delete']:
     print "Deleting job %s from project %s" % (id, args['PROJ'])
     print j.getLine()
     print "Or rather, I will once the actual delete code is working."
-    # WriteLog(log_file, p.projtag, j.id, "Job deleted.")
+    # WriteLog(log_file, p.projtag, j.id, "DELETED")
 
 if args['pick']:
     projtag = args['PROJ']
@@ -351,7 +351,7 @@ if args['pick']:
     j.pick()
     print j.getLine()
     datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "Job picked.")
+    WriteLog(log_file, p.projtag, j.id, "PICKED")
 
 if args['unpick']:
     projtag = args['PROJ']
@@ -371,7 +371,7 @@ if args['unpick']:
     j.unpick()
     print j.getLine()
     datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "Job unpicked.")
+    WriteLog(log_file, p.projtag, j.id, "UNPICKED")
 
 if args['start']:
     projtag = args['PROJ']
@@ -391,7 +391,7 @@ if args['start']:
     j.start()
     print j.getLine()
     datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "Job started.")
+    WriteLog(log_file, p.projtag, j.id, "STARTED")
 
 if args['finish']:
     projtag = args['PROJ']
@@ -406,9 +406,9 @@ if args['finish']:
         exit()
     if not j.isStarted():
         mention("That job wasn't started. Marking it started and finished.")
-        WriteLog(log_file, p.projtag, j.id, "%s => STARTED"%j.getLine())
+        WriteLog(log_file, p.projtag, j.id, "STARTED")
     mention("Marking job %s from project %s as finished." % (id, projtag))
-    WriteLog(log_file, p.projtag, j.id, "%s => FINISHED"%j.getLine())
+    WriteLog(log_file, p.projtag, j.id, "FINISHED")
     p.removeJob(j)
     datachanged = 1
 
