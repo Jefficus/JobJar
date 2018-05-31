@@ -43,7 +43,7 @@
       jb [options] start PROJ JOBID...
       jb [options] finish PROJ JOBID...
       jb [options] delete PROJ JOBID
-      jb [options] log PROJ JOBID MESSAGE
+      jb [options] log PROJ JOBID MESSAGE...
       jb [options] sleep PROJ [JOBID...]
       jb [options] wake PROJ [JOBID...]
       jb -h | --help
@@ -435,6 +435,26 @@ if args['finish']:
         WriteLog(log_file, p.projtag, j.id, "FINISHED")
         p.removeJob(j)
         datachanged = 1
+
+if args['log']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "Looks like you forgot to specify the PROJ tag."
+        print "No log entry added."
+        exit()
+    if len(args['JOBID']) == 0:
+        print "No job id given, so there's nowhere to put the log entry."
+        exit()
+    id = args['JOBID'][0]
+    j = p.getJobByID(id)
+    if len(args['MESSAGE']) == 0:
+        print "No message provided to enter into log."
+        exit()
+    logstr = ' '.join(args['MESSAGE'])
+    WriteLog(log_file, p.projtag, j.id, "LOG: %s" % logstr)
+    datachanged = 0  # log entries do not modify the job file
+    print "Note logged to job %s %s." % (p.projtag, id)
 
 # This should be the last thing
 if args['-d']:
