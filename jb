@@ -78,9 +78,18 @@ def mention(outstr):
     if args['-v']:
         print outstr
 
+# by default, use the data files from the user's home directory
 todo_file = os.path.expanduser("~/.jobs.jb")
 log_file = os.path.expanduser("~/.log.jb")
 
+# if they exist, use data files found in the current directory
+if os.path.exists(".jobs.jb"):
+    todo_file = ".jobs.jb"
+    print "Using job data file in current directory."
+if os.path.exists(".log.jb"):
+    log_file = ".log.jb"
+
+# if the user explicitly specifies an override, use the provided files
 if '-f' in args and args['-f']:
    todo_file = args['-f']
 if '-l' in args and args['-l']:
@@ -319,8 +328,8 @@ if args['add']:
     p = GetProjectByTag(projtag)
     if not p:
         if len(args['JOBSTRING']) > 0:
-            print "Looks like you forgot to specify the PROJ tag."
-            print "No job added."
+            print "Project '%s' doesn't exist." % projtag
+            print "Create the project before trying to add jobs to it."
             exit()
         p = Project(projtag)
         projects.append(p)
@@ -333,6 +342,8 @@ if args['add']:
         datachanged = 1
         print "Job \"%s\" added to project %s."%(j.jobstr, p.projtag)
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
+    else:
+        print "Description text not given. No job added." 
 
 if args['delete']:
     if not args['-y']:
