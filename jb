@@ -38,14 +38,14 @@
       jb [options] sleeping [PROJ]
       jb [options] started [PROJ]
       jb [options] add PROJ [JOBSTRING...]
-      jb [options] pick PROJ JOBID
-      jb [options] unpick PROJ JOBID
-      jb [options] start PROJ JOBID
+      jb [options] pick PROJ JOBID...
+      jb [options] unpick PROJ JOBID...
+      jb [options] start PROJ JOBID...
+      jb [options] finish PROJ JOBID...
       jb [options] delete PROJ JOBID
       jb [options] log PROJ JOBID MESSAGE
-      jb [options] finish PROJ JOBID
-      jb [options] sleep PROJ [JOBID]
-      jb [options] wake PROJ [JOBID]
+      jb [options] sleep PROJ [JOBID...]
+      jb [options] wake PROJ [JOBID...]
       jb -h | --help
       jb -V | --version
 
@@ -354,19 +354,21 @@ if args['pick']:
     if not p:
         print "No such project exists. Nothing to pick."
         exit()
-    id = args['JOBID']
-    j = p.getJobByID(id)
-    if not j:
-        print "No such jobid (%s) in that project. Nothing to pick." % id
-        exit()
-    if j.isPicked():
-        print "That job is already picked."
-        exit()
-    print "Picking job %s from project %s" % (id, args['PROJ'])
-    j.pick()
-    print j.getLine()
-    datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "PICKED")
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No job with id %s in that project." % id
+            continue
+        if j.isPicked():
+            print "Job \"%s\" is already picked."%j.jobstr
+            continue
+        joblist.append(j)
+    for j in joblist:
+        print "Picking job %s from project %s" % (j.id[-idlen:], p.projtag)
+        j.pick()
+        datachanged = 1
+        WriteLog(log_file, p.projtag, j.id, "PICKED")
 
 if args['unpick']:
     projtag = args['PROJ']
@@ -374,19 +376,21 @@ if args['unpick']:
     if not p:
         print "No such project exists. Nothing to unpick."
         exit()
-    id = args['JOBID']
-    j = p.getJobByID(id)
-    if not j:
-        print "No such jobid (%s) in that project. Nothing to unpick." % id
-        exit()
-    if not j.isPicked():
-        print "That job is not picked so it cannot be unpicked."
-        exit()
-    print "Unpicking job %s from project %s" % (id, args['PROJ'])
-    j.unpick()
-    print j.getLine()
-    datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "UNPICKED")
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No jobwith id %s in that project." % id
+            continue
+        if not j.isPicked():
+            print "Job %s is not picked so it cannot be unpicked."%id
+            continue
+        joblist.append(j)
+    for j in joblist:
+        print "Unpicking job %s from project %s" % (j.id[-idlen:], p.projtag)
+        j.unpick()
+        datachanged = 1
+        WriteLog(log_file, p.projtag, j.id, "UNPICKED")
 
 if args['start']:
     projtag = args['PROJ']
@@ -394,19 +398,21 @@ if args['start']:
     if not p:
         print "No such project exists. Nothing to start."
         exit()
-    id = args['JOBID']
-    j = p.getJobByID(id)
-    if not j:
-        print "No such jobid (%s) in that project. Nothing to start." % id
-        exit()
-    if j.isStarted():
-        print "That job is already started."
-        exit()
-    print "Starting job %s from project %s" % (id, args['PROJ'])
-    j.start()
-    print j.getLine()
-    datachanged = 1
-    WriteLog(log_file, p.projtag, j.id, "STARTED")
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No job with id %s in that project." % id
+            continue
+        if j.isStarted():
+            print "Job %s is already started."%id
+            continue
+        joblist.append(j)
+    for j in joblist:
+        print "Starting job %s from project %s" % (j.id[-idlen:], p.projtag)
+        j.start()
+        datachanged = 1
+        WriteLog(log_file, p.projtag, j.id, "STARTED")
 
 if args['finish']:
     projtag = args['PROJ']
@@ -414,18 +420,21 @@ if args['finish']:
     if not p:
         print "No such project exists. Nothing to finish."
         exit()
-    id = args['JOBID']
-    j = p.getJobByID(id)
-    if not j:
-        print "No such jobid (%s) in that project. Nothing to finish." % id
-        exit()
-    if not j.isStarted():
-        mention("That job wasn't started. Marking it started and finished.")
-        WriteLog(log_file, p.projtag, j.id, "STARTED")
-    print("Job \"%s\" from project %s logged as finished." % (j.jobstr, projtag))
-    WriteLog(log_file, p.projtag, j.id, "FINISHED")
-    p.removeJob(j)
-    datachanged = 1
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No job with id %s in that project." % id
+            continue
+        if not j.isStarted():
+            mention("That job wasn't started. Marking it started and finished.")
+            WriteLog(log_file, p.projtag, j.id, "STARTED")
+        joblist.append(j)
+    for j in joblist:
+        print("Job %s from project %s logged as finished." % (j.id[-idlen:], projtag))
+        WriteLog(log_file, p.projtag, j.id, "FINISHED")
+        p.removeJob(j)
+        datachanged = 1
 
 # This should be the last thing
 if args['-d']:
