@@ -186,10 +186,19 @@ class Project(object):
         return [j for j in self.jobs if j.isInScope()]
 
     def getJobByID(self, id):
+        hits = []
         for j in self.jobs:
             if j.id.lower().endswith(id.lower()):
-                return j
-        return None
+                hits.append(j)
+        if len(hits) == 1:
+            return None
+        elif len(hits) == 0:
+            print "No job found matching id '%s'. Aborting." % id
+            exit()
+        else:
+            print "Multiple jobs found matching id '%s'." % id
+            print "List jobs again using higher -i value and try again."
+            exit()
 
     def getStartedJobs(self):
         outs = []
@@ -308,14 +317,20 @@ if args['add']:
     projtag = args['PROJ']
     p = GetProjectByTag(projtag)
     if not p:
+        if len(args['JOBSTRING']) > 0:
+            print "Looks like you forgot to specify the PROJ tag."
+            print "No job added."
+            exit()
         p = Project(projtag)
         projects.append(p)
         datachanged = 1
+        print "Project %s created."%projtag
         WriteLog(log_file, projtag, 0, "CREATED")
     if args['JOBSTRING']:
         jstr = ' '.join(args['JOBSTRING'])
         j = p.addJob(jstr)
         datachanged = 1
+        print "Job \"%s\" added to project %s."%(j.jobstr, p.projtag)
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
 
 if args['delete']:
