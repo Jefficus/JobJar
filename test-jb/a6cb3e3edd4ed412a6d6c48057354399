@@ -1,7 +1,0 @@
-jb -f test-jb/data.jb stats
-Projects: 5
-Sleeping Projects: 2
-Total Jobs: 16
-Started Jobs: 5
-Sleeping Jobs: 3
-Active Jobs: 4

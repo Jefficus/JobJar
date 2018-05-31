@@ -1,0 +1,6 @@
+jb -f test-jb/data.jb -l test-jb/datalog.jb started -a
+     Proj1: (27) * Task already started
+     Proj2: (10) * Ongoing task in-progress
+     Proj2: (0e) !*An in-progress task revisited today
+~ProjSleep: (23) *On-going task in sleeping project
+~ProjSleep2: (a7) * Task started before project was deferred

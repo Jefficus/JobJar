@@ -1,0 +1,27 @@
+jb -f test-jb/data.jb -l test-jb/datalog.jb list -a
+Proj1
+  (27) * Task already started
+  (1b) Task to do next
+
+Proj2
+  (6d) ! Today's new task
+  (00) Tomorrow's task
+  (10) * Ongoing task in-progress
+  (0e) !*An in-progress task revisited today
+  (bb) ~Task for next year
+
+~ProjSleep
+  (23) *On-going task in sleeping project
+  (27) Unstarted task in sleeping project
+  (e6) !Active task in sleeping project
+
+~ProjSleep2
+  (f1) Task to be done in deferred project
+  (a7) * Task started before project was deferred
+  (b3) ~Sleeping task in deferred project
+
+Proj3
+  (d3) ! New task for today in new project
+  (52) ~ New task for next year in new project
+  (8b) New task for next week in new project
+

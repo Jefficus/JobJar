@@ -1,5 +1,0 @@
-jb -f test-jb/data.jb projects
-Current projects
-  Proj1
-  Proj2
-  Proj3

@@ -1,4 +1,4 @@
-jb -f test-jb/data.jb projects -a
+jb -f test-jb/data.jb -l test-jb/datalog.jb projects -a
 All projects
   Proj1
   Proj2

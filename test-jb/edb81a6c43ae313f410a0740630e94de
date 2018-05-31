@@ -1,7 +1,0 @@
-jb -f test-jb/data.jb list Proj2
-Proj2
-  ! Today's new task
-  Tomorrow's task
-  * Ongoing task in-progress
-  !*An in-progress task revisited today
-

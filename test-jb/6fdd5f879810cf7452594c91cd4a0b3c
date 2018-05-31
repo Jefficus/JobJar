@@ -1,9 +1,0 @@
-jb -f test-jb/data.jb sleeping -a
-Sleeping Tasks:
-     Proj2: ~Task for next year
-~ProjSleep2: ~Sleeping task in deferred project
-     Proj3: ~ New task for next year in new project
-
-Sleeping Projects:
-~ProjSleep
-~ProjSleep2

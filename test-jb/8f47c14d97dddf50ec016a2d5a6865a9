@@ -1,0 +1,2 @@
+jb -f test-jb/data.jb -l test-jb/datalog.jb pick Proj12 6d -d
+No such project exists. Nothing to pick.
