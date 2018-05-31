@@ -19,6 +19,16 @@
           Sleeping projects and tasks are excluded from reports
           unless the -a option is present.
 
+   ID values:
+          Each job is given an id based on the MD5 hash of its text,
+          so that log records and notes can be associated with it,
+          but nobody has time to type in a 30-character string just to
+          mark a job complete. So in practice, only the last 2 digits
+          of the id string are shown. This is usually fine, but on 
+          rare occasions, two jobs may have the same final digits. If
+          this happens, just relist the jobs using the "-i" option to 
+          increase the number of digits shown in the id values.
+
    Usage: 
       jb [options] stats
       jb [options] projects
@@ -44,6 +54,7 @@
       -a     # Report ALL projects/tasks, including ~-sleeping ones
       -f FN  # Use FN as the todo file
       -l FN  # Use FN as the log file
+      -i N   # Show N digits of the job id (defuault = 2)
       -v     # Display verbose output
       -V     # Display version information
 
@@ -74,8 +85,12 @@ if '-f' in args and args['-f']:
 if '-l' in args and args['-l']:
    log_file = args['-l']
 
-datachanged = False
+idlen = 2
 projects = []
+datachanged = False
+
+if args['-i']:
+    idlen = int(args['-i'])
 
 mention("Todo file: %s" % todo_file)
 mention("Log file: %s" % log_file)
@@ -105,7 +120,7 @@ class Job(object):
                     doflags = False
             else:
                 self.jobstr += c
-        self.id = hashlib.md5(self.jobstr).hexdigest()[-2:]
+        self.id = hashlib.md5(self.jobstr.strip()).hexdigest()
 
     def getLine(self):
         return "%s%s" % (self.flags, self.jobstr)
@@ -172,7 +187,7 @@ class Project(object):
 
     def getJobByID(self, id):
         for j in self.jobs:
-            if j.id.lower() == id.lower():
+            if j.id.lower().endswith(id.lower()):
                 return j
         return None
 
@@ -221,7 +236,7 @@ if args['list']:
         if p.isInScope():
             print "%s" % p.projtag
             for j in p.getJobs():
-                print "  (%s) %s" % (j.id, j.getLine())
+                print "  (%s) %s" % (j.id[-idlen:], j.getLine())
             print
 
 
@@ -231,7 +246,7 @@ if args['started']:
         if p.isInScope():
             jbs = p.getStartedJobs()
             for j in jbs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -242,7 +257,7 @@ if args['picked'] or args['today']:
         if p.isInScope():
             jbs = p.getPickedJobs()
             for j in jbs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:
         print "No jobs picked for today."
@@ -254,7 +269,7 @@ if args['sleeping']:
         if p.isInScope():
             jbs = p.getSleepingJobs()
             for j in jbs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
