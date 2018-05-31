@@ -52,6 +52,7 @@
 
 import os
 import re
+import hashlib
 import datetime
 from docopt import docopt
 
@@ -86,15 +87,14 @@ YYYY-MM-DD PROJ JOBID Message...
 def WriteLog(logfile, projtag, jobid, msg):
     with open(logfile, 'a') as fh:
         dt = datetime.datetime.now().strftime("%Y-%m-%d")
-        fh.write("%s %s %d %s\n" % (dt, projtag, jobid, msg))
+        fh.write("%s %s %s %s\n" % (dt, projtag, jobid, msg))
 
 
 class Job(object):
-    def __init__(self, jobstr, id):
+    def __init__(self, jobstr):
         doflags = True
         self.jobstr = ''
         self.flags = ''
-        self.id = id 
         for c in jobstr:
             if doflags: 
                 if c in "~*!":
@@ -104,6 +104,7 @@ class Job(object):
                     doflags = False
             else:
                 self.jobstr += c
+        self.id = hashlib.md5(self.jobstr).hexdigest()[-2:]
 
     def getLine(self):
         return "%s%s" % (self.flags, self.jobstr)
@@ -153,7 +154,7 @@ class Project(object):
         return projtag == intag or '~' + projtag == intag
 
     def addJob(self, jobstr):
-        j = Job(jobstr, len(self.jobs)+1) 
+        j = Job(jobstr) 
         self.jobs.append(j)
         return j
 
@@ -166,7 +167,7 @@ class Project(object):
 
     def getJobByID(self, id):
         for j in self.jobs:
-            if j.id == id:
+            if j.id.lower() == id.lower():
                 return j
         return None
 
@@ -215,7 +216,7 @@ if args['list']:
         if p.isInScope():
             print "%s" % p.projtag
             for j in p.getJobs():
-                print "  (%d) %s" % (j.id, j.getLine())
+                print "  (%s) %s" % (j.id, j.getLine())
             print
 
 
@@ -225,7 +226,7 @@ if args['started']:
         if p.isInScope():
             jbs = p.getStartedJobs()
             for j in jbs:
-                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -236,7 +237,7 @@ if args['picked'] or args['today']:
         if p.isInScope():
             jbs = p.getPickedJobs()
             for j in jbs:
-                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
         print "No jobs picked for today."
@@ -248,7 +249,7 @@ if args['sleeping']:
         if p.isInScope():
             jbs = p.getSleepingJobs()
             for j in jbs:
-                print "%s: (%d) %s"% (p.projtag.rjust(10), j.id, j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id, j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -302,11 +303,11 @@ if args['delete']:
     if not p:
         print "No such project exists. Nothing to delete."
         exit()
-    id = int(args['JOBID'])
-    if id > len(p.jobs):
-        print "No such JOBID (%d) in that project. Nothing to delete." % id
-        exit()
+    id = args['JOBID']
     j = p.getJobByID(id)
+    if not j:
+        print "No such JOBID (%s) in that project. Nothing to delete." % id
+        exit()
     print "Deleting job %d from project %s" % (id, args['PROJ'])
     print j.getLine()
     print "Or rather, I will once the actual delete code is working."
@@ -318,11 +319,11 @@ if args['pick']:
     if not p:
         print "No such project exists. Nothing to pick."
         exit()
-    id = int(args['JOBID'])
-    if id > len(p.jobs):
-        print "No such jobid (%d) in that project. Nothing to pick." % id
-        exit()
+    id = args['JOBID']
     j = p.getJobByID(id)
+    if not j:
+        print "No such jobid (%s) in that project. Nothing to pick." % id
+        exit()
     if j.isPicked():
         print "That job is already picked."
         exit()
@@ -338,11 +339,11 @@ if args['unpick']:
     if not p:
         print "No such project exists. Nothing to unpick."
         exit()
-    id = int(args['JOBID'])
-    if id > len(p.jobs):
-        print "No such jobid (%d) in that project. Nothing to unpick." % id
-        exit()
+    id = args['JOBID']
     j = p.getJobByID(id)
+    if not j:
+        print "No such jobid (%s) in that project. Nothing to unpick." % id
+        exit()
     if not j.isPicked():
         print "That job is not picked so it cannot be unpicked."
         exit()
@@ -358,15 +359,15 @@ if args['finish']:
     if not p:
         print "No such project exists. Nothing to finish."
         exit()
-    id = int(args['JOBID'])
-    if id > len(p.jobs):
-        print "No such jobid (%d) in that project. Nothing to finish." % id
-        exit()
+    id = args['JOBID']
     j = p.getJobByID(id)
+    if not j:
+        print "No such jobid (%s) in that project. Nothing to finish." % id
+        exit()
     if not j.isStarted():
         mention("That job wasn't started. Marking it started and finished.")
         WriteLog(log_file, p.projtag, j.id, "%s => STARTED"%j.getLine())
-    mention("Marking job %d from project %s as finished." % (id, projtag))
+    mention("Marking job %s from project %s as finished." % (id, projtag))
     WriteLog(log_file, p.projtag, j.id, "%s => FINISHED"%j.getLine())
     p.removeJob(j)
     datachanged = 1
