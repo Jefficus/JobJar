@@ -407,7 +407,7 @@ if args['finish']:
     if not j.isStarted():
         mention("That job wasn't started. Marking it started and finished.")
         WriteLog(log_file, p.projtag, j.id, "STARTED")
-    mention("Marking job %s from project %s as finished." % (id, projtag))
+    print("Job \"%s\" from project %s logged as finished." % (j.jobstr, projtag))
     WriteLog(log_file, p.projtag, j.id, "FINISHED")
     p.removeJob(j)
     datachanged = 1
