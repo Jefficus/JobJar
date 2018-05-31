@@ -55,6 +55,7 @@
       -f FN  # Use FN as the todo file
       -l FN  # Use FN as the log file
       -i N   # Show N digits of the job id (defuault = 2)
+      -y     # Required extra confirmation for extreme commands like 'delete'
       -v     # Display verbose output
       -V     # Display version information
 
@@ -334,19 +335,29 @@ if args['add']:
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
 
 if args['delete']:
+    if not args['-y']:
+        print "Deletion cannot be undone, so confirmation is required."
+        print "If you really mean it, run the command again with the -y option."
+        exit()
     p = GetProjectByTag(args['PROJ'])
     if not p:
         print "No such project exists. Nothing to delete."
         exit()
-    id = args['JOBID']
+    if len(args['JOBID']) > 1:
+        print "Jobs can only be deleted one at a time."
+        exit()
+    elif len(args['JOBID']) == 0:
+        print "Deleting projects not yet implemented."
+        exit()
+    id = args['JOBID'][0]
     j = p.getJobByID(id)
     if not j:
         print "No such JOBID (%s) in that project. Nothing to delete." % id
         exit()
-    print "Deleting job %s from project %s" % (id, args['PROJ'])
-    print j.getLine()
-    print "Or rather, I will once the actual delete code is working."
-    # WriteLog(log_file, p.projtag, j.id, "DELETED")
+    p.removeJob(j)
+    datachanged = 1
+    print "Job %s deleted from project %s" % (id, p.projtag)
+    WriteLog(log_file, p.projtag, j.id, "DELETED")
 
 if args['pick']:
     projtag = args['PROJ']
