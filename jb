@@ -30,6 +30,7 @@
       jb [options] add PROJ [JOBSTRING...]
       jb [options] pick PROJ JOBID
       jb [options] unpick PROJ JOBID
+      jb [options] start PROJ JOBID
       jb [options] delete PROJ JOBID
       jb [options] log PROJ JOBID MESSAGE
       jb [options] finish PROJ JOBID
@@ -128,6 +129,10 @@ class Job(object):
     def unpick(self):
         if '!' in self.flags:
             self.flags = self.flags.replace('!', '')
+
+    def start(self):
+        if '*' not in self.flags:
+            self.flags += '*'
 
 class Project(object):
     def __init__(self, projtag):
@@ -352,6 +357,26 @@ if args['unpick']:
     print j.getLine()
     datachanged = 1
     WriteLog(log_file, p.projtag, j.id, "Job unpicked.")
+
+if args['start']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing to start."
+        exit()
+    id = args['JOBID']
+    j = p.getJobByID(id)
+    if not j:
+        print "No such jobid (%s) in that project. Nothing to start." % id
+        exit()
+    if j.isStarted():
+        print "That job is already started."
+        exit()
+    print "Starting job %s from project %s" % (id, args['PROJ'])
+    j.start()
+    print j.getLine()
+    datachanged = 1
+    WriteLog(log_file, p.projtag, j.id, "Job started.")
 
 if args['finish']:
     projtag = args['PROJ']
