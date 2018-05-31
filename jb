@@ -191,7 +191,7 @@ class Project(object):
             if j.id.lower().endswith(id.lower()):
                 hits.append(j)
         if len(hits) == 1:
-            return None
+            return hits[0]
         elif len(hits) == 0:
             print "No job found matching id '%s'. Aborting." % id
             exit()
