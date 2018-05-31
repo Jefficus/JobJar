@@ -308,7 +308,7 @@ if args['delete']:
     if not j:
         print "No such JOBID (%s) in that project. Nothing to delete." % id
         exit()
-    print "Deleting job %d from project %s" % (id, args['PROJ'])
+    print "Deleting job %s from project %s" % (id, args['PROJ'])
     print j.getLine()
     print "Or rather, I will once the actual delete code is working."
     # WriteLog(log_file, p.projtag, j.id, "Job deleted.")
@@ -327,7 +327,7 @@ if args['pick']:
     if j.isPicked():
         print "That job is already picked."
         exit()
-    print "Picking job %d from project %s" % (id, args['PROJ'])
+    print "Picking job %s from project %s" % (id, args['PROJ'])
     j.pick()
     print j.getLine()
     datachanged = 1
@@ -347,7 +347,7 @@ if args['unpick']:
     if not j.isPicked():
         print "That job is not picked so it cannot be unpicked."
         exit()
-    print "Unpicking job %d from project %s" % (id, args['PROJ'])
+    print "Unpicking job %s from project %s" % (id, args['PROJ'])
     j.unpick()
     print j.getLine()
     datachanged = 1
