@@ -75,11 +75,12 @@ todo_file = os.path.expanduser("~/.jobs.jb")
 log_file = os.path.expanduser("~/.log.jb")
 
 # if they exist, use data files found in the current directory
-if os.path.exists(".jobs.jb"):
-    todo_file = ".jobs.jb"
-    print "Using job data file in current directory."
-if os.path.exists(".log.jb"):
-    log_file = ".log.jb"
+if os.getcwd() != os.path.expanduser("~"):
+    if os.path.exists(".jobs.jb"):
+        todo_file = ".jobs.jb"
+        print "Using job data file in current directory."
+    if os.path.exists(".log.jb"):
+        log_file = ".log.jb"
 
 # if the user explicitly specifies an override, use the provided files
 if '-D' in args and args['-D']:
