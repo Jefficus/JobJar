@@ -35,7 +35,7 @@
       jb [options] add PROJ [JOBSTRING...]
       jb [options] (list|picked|today|sleeping|started) [PROJ]
       jb [options] (pick|unpick|start|finish) PROJ JOBID...
-      jb [options] delete PROJ JOBID
+      jb [options] delete PROJ [JOBID]
       jb [options] log PROJ JOBID MESSAGE...
       jb [options] sleep PROJ [JOBID...]
       jb [options] wake PROJ [JOBID...]
@@ -346,18 +346,24 @@ if args['delete']:
     if len(args['JOBID']) > 1:
         print "Jobs can only be deleted one at a time."
         exit()
-    elif len(args['JOBID']) == 0:
-        print "Deleting projects not yet implemented."
-        exit()
-    id = args['JOBID'][0]
-    j = p.getJobByID(id)
-    if not j:
-        print "No such JOBID (%s) in that project. Nothing to delete." % id
-        exit()
-    p.removeJob(j)
-    datachanged = 1
-    print "Job %s deleted from project %s" % (id, p.projtag)
-    WriteLog(log_file, p.projtag, j.id, "DELETED")
+    if len(args['JOBID']) == 0:
+        if len(p.jobs) == 0:
+            projects.remove(p)
+            datachanged = 1
+            WriteLog(log_file, p.projtag, 0, "DELETED")
+            print "Project %s deleted." % p.projtag
+        else:
+            print "Project %s has jobs. Only empty projects can be deleted." % p.projtag
+    else:
+        id = args['JOBID'][0]
+        j = p.getJobByID(id)
+        if not j:
+            print "No such JOBID (%s) in that project. Nothing to delete." % id
+            exit()
+        p.removeJob(j)
+        datachanged = 1
+        WriteLog(log_file, p.projtag, j.id, "DELETED")
+        print "Job %s deleted from project %s" % (id, p.projtag)
 
 if args['pick']:
     projtag = args['PROJ']
