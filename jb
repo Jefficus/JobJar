@@ -43,14 +43,13 @@
       jb -V | --version
 
    Options:
-      -d     # Dump modified data file to STDOUT rather than writing to file
-      -a     # Report ALL projects/tasks, including ~-sleeping ones
-      -f FN  # Use FN as the todo file
-      -l FN  # Use FN as the log file
-      -i N   # Show N digits of the job id (defuault = 2)
-      -y     # Required extra confirmation for extreme commands like 'delete'
-      -v     # Display verbose output
-      -V     # Display version information
+      -d      # Dump modified data file to STDOUT rather than writing to file
+      -a      # Report ALL projects/tasks, including ~-sleeping ones
+      -D PATH # Look in directory at PATH for .job.jb and .log.jb files
+      -i N    # Show N digits of the job id (defuault = 2)
+      -y      # Required extra confirmation for extreme commands like 'delete'
+      -v      # Display verbose output
+      -V      # Display version information
 
    Created 2018 by Jefferson Smith <jefferson@smithicus.com>
    Check out my tools, videos, and novels at http://creativityhacker.ca
@@ -83,10 +82,9 @@ if os.path.exists(".log.jb"):
     log_file = ".log.jb"
 
 # if the user explicitly specifies an override, use the provided files
-if '-f' in args and args['-f']:
-   todo_file = args['-f']
-if '-l' in args and args['-l']:
-   log_file = args['-l']
+if '-D' in args and args['-D']:
+   todo_file = os.path.join(args['-D'], '.jobs.jb')
+   log_file = os.path.join(args['-D'], '.log.jb')
 
 idlen = 2
 projects = []
@@ -335,8 +333,6 @@ if args['add']:
         datachanged = 1
         print "Job \"%s\" added to project %s."%(j.jobstr, p.projtag)
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
-    else:
-        print "Description text not given. No job added." 
 
 if args['delete']:
     if not args['-y']:
