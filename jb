@@ -107,6 +107,60 @@ def WriteLog(logfile, projtag, jobid, msg):
         dt = datetime.datetime.now().strftime("%Y-%m-%d")
         fh.write("%s %s %s %s\n" % (dt, projtag, jobid, msg))
 
+def breakline(line, width):
+    head = ''
+    tail = ''
+    for i in range(width, 0, -1):
+        if line[i] == ' ':
+            head = line[:i]
+            tail = line[i+1:]
+            return head, tail
+    head = "%s..." % line[:width-3]
+    tail = ''
+    return head, tail
+    
+
+def print_multi(linelist, columnwide, wrapindent=4):
+    # first step, remake the list as width-limited single column
+    newlines = []
+    for l in linelist:
+        if len(l) <= columnwide:
+            newlines.append(l)
+        else:
+            head, tail = breakline(l, columnwide)
+            newlines.append(head)
+            while tail and len(tail) > columnwide-wrapindent:
+                head, tail = breakline(tail, columnwide-wrapindent)
+                newlines.append(" "*wrapindent + head)
+            if len(tail):
+                newlines.append(" "*wrapindent + tail)
+
+    # second step, figure out where to break the column
+    th, tw = os.popen('stty size', 'r').read().split()
+    termwide = int(tw)
+    cols = int((termwide/columnwide))
+    gap = int( (termwide-(cols*columnwide))/(cols-1) )
+
+    # see if we can find a line after the half-way point
+    # that begins in the first column. Only break on those lines
+    newcol = 0
+    for i in range(len(newlines)/2, len(newlines)):
+        if newlines[i] and newlines[i][0] != ' ':
+            newcol = i
+            break
+
+    # third step, start printing
+    if newcol:
+        for i in range(0, newcol):
+            if newcol + i < len(newlines):
+                l = newlines[i].ljust(columnwide)
+                l += ' '*gap + newlines[newcol+i]
+            else:
+                l = newlines[i]
+            print l
+    else:
+        for l in newlines:
+            print l
 
 class Job(object):
     def __init__(self, jobstr):
@@ -244,21 +298,25 @@ if args['projects']:
 
 if args['list']:
     count = 0
+    lines = []
     for p in projects:
         if p.isInScope():
             count += 1
-            print "%s" % p.projtag
+            lines.append( "%s" % p.projtag)
             scopedJobs = p.getJobs()
             for j in scopedJobs:
-                print "  (%s) %s" % (j.id[-idlen:], j.getLine())
+                lines.append( "  (%s) %s" % (j.id[-idlen:], j.getLine()))
             diff = len(p.jobs) - len(scopedJobs)
             if diff:
-                print "    %s +%d sleeping tasks" % (" "*idlen, diff) 
-            print
+                lines.append( "    %s +%d sleeping tasks" % (" "*idlen, diff) )
+            lines.append('')
     diff = len(projects) - count
     if diff:
-        print "+%d sleeping projects" % (diff) 
-        print
+        lines.append( "+%d sleeping projects" % (diff) )
+        lines.append('')
+    #for l in lines:
+    #    print l
+    print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
 
 if args['started']:
