@@ -36,6 +36,7 @@
       jb [options] (list|picked|today|sleeping|started) [PROJ]
       jb [options] (pick|unpick|start|finish) PROJ JOBID...
       jb [options] delete PROJ [JOBID]
+      jb [options] report DATE [PROJ]
       jb [options] log PROJ JOBID MESSAGE...
       jb [options] sleep PROJ [JOBID...]
       jb [options] wake PROJ [JOBID...]
@@ -90,11 +91,9 @@ if '-D' in args and args['-D']:
 
 # determine what date should be shown in the log
 if args['-w']:
-    if re.match("\d\d\d\d-\d\d-\d\d", args['-w']):
-        log_date = args['-w']
-    elif args['-w'].lower() == 'yesterday':
-        dt = datetime.date.today() - datetime.timedelta(1)
-        log_date = dt.strftime("%Y-%m-%d")
+    dstr =  getDateArg(args['-w'])
+    if dstr:
+        log_date = dstr
     else:
         print "Date provided in -w option must be in the form YYYY-MM-DD"
         exit()
@@ -124,6 +123,17 @@ def WriteLog(logfile, projtag, jobid, msg):
         else:
             dt = datetime.datetime.now().strftime("%Y-%m-%d")
         fh.write("%s %s %s %s\n" % (dt, projtag, jobid, msg))
+
+def getDateArg(instr):
+    if re.match("\d\d\d\d-\d\d-\d\d", instr.strip()):
+        return instr.strip()
+    elif instr.lower() == 'today':
+        dt = datetime.date.today()
+        return dt.strftime("%Y-%m-%d")
+    elif instr.lower() == 'yesterday':
+        dt = datetime.date.today() - datetime.timedelta(1)
+        return dt.strftime("%Y-%m-%d")
+    return None
 
 def breakline(line, width):
     head = ''
@@ -359,6 +369,29 @@ if args['list']:
         lines.append('')
     print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
+if args['report']:
+    dstr = getDateArg(args['DATE'])
+    if dstr:
+        target_date = dstr
+    else:
+        print "Report date must be in the form YYYY-MM-DD or the word 'yesterday'."
+        exit()
+    count = 0
+    projlines = {}
+    with open(log_file, 'r') as fh:
+        for l in fh.readlines():
+            line = l.strip()
+            words = line.split()
+            if words[0] == target_date:
+                projtag = words[1]
+                if not projtag in projlines:
+                    projlines[projtag] = []
+                projlines[projtag].append(' '.join(words[3:]))
+    for projtag in projlines:
+        print projtag
+        for line in projlines[projtag]:
+            print "   " + line
+        print
 
 if args['started']:
     count = 0
