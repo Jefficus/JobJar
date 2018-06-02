@@ -47,6 +47,7 @@
       -a      # Report ALL projects/tasks, including ~-sleeping ones
       -D PATH # Look in directory at PATH for .job.jb and .log.jb files
       -i N    # Show N digits of the job id (defuault = 2)
+      -w DT   # Use DT instead of today in the logs for current operation
       -y      # Required extra confirmation for extreme commands like 'delete'
       -v      # Display verbose output
       -V      # Display version information
@@ -87,6 +88,11 @@ if '-D' in args and args['-D']:
    todo_file = os.path.join(args['-D'], '.jobs.jb')
    log_file = os.path.join(args['-D'], '.log.jb')
 
+# if an override log date is provided, make sure it's in proper form
+if args['-w'] and not re.match("\d\d\d\d-\d\d-\d\d", args['-w']):
+    print "Date provided in -w option must be in the form YYYY-MM-DD"
+    exit()
+
 idlen = 2
 projects = []
 datachanged = False
@@ -104,7 +110,10 @@ YYYY-MM-DD PROJ JOBID Message...
 
 def WriteLog(logfile, projtag, jobid, msg):
     with open(logfile, 'a') as fh:
-        dt = datetime.datetime.now().strftime("%Y-%m-%d")
+        if args['-w']:
+                dt = args['-w']
+        else:
+            dt = datetime.datetime.now().strftime("%Y-%m-%d")
         fh.write("%s %s %s %s\n" % (dt, projtag, jobid, msg))
 
 def breakline(line, width):
