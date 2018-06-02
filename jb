@@ -223,6 +223,7 @@ class Job(object):
         if '*' not in self.flags:
             self.flags += '*'
 
+
 class Project(object):
     def __init__(self, projtag):
         self.projtag = projtag.strip()
@@ -267,7 +268,7 @@ class Project(object):
         if len(hits) == 1:
             return hits[0]
         elif len(hits) == 0:
-            print "No job found matching id '%s'. Aborting." % id
+            print "No job found matching id '%s' in project %s. Aborting." % (id, self.projtag)
             exit()
         else:
             print "Multiple jobs found matching id '%s'." % id
@@ -450,7 +451,7 @@ if args['delete']:
         p.removeJob(j)
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "DELETED")
-        print "Job %s deleted from project %s" % (id, p.projtag)
+        print "Job \"%s\" deleted from project %s" % (j.jobstr, p.projtag)
 
 if args['pick']:
     projtag = args['PROJ']
@@ -469,10 +470,10 @@ if args['pick']:
             continue
         joblist.append(j)
     for j in joblist:
-        print "Picking job %s from project %s" % (j.id[-idlen:], p.projtag)
         j.pick()
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "PICKED")
+        print "Job \"%s\" from project %s picked" % (j.jobstr, p.projtag)
 
 if args['unpick']:
     projtag = args['PROJ']
@@ -491,7 +492,7 @@ if args['unpick']:
             continue
         joblist.append(j)
     for j in joblist:
-        print "Unpicking job %s from project %s" % (j.id[-idlen:], p.projtag)
+        print "Job \"%s\" from project %s unpicked" % (j.jobstr, p.projtag)
         j.unpick()
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "UNPICKED")
@@ -513,9 +514,9 @@ if args['start']:
             continue
         joblist.append(j)
     for j in joblist:
-        print "Starting job %s from project %s" % (j.id[-idlen:], p.projtag)
         j.start()
         datachanged = 1
+        print "Job \"%s\" from project %s started" % (j.jobstr, p.projtag)
         WriteLog(log_file, p.projtag, j.id, "STARTED")
 
 if args['finish']:
@@ -535,10 +536,10 @@ if args['finish']:
             WriteLog(log_file, p.projtag, j.id, "STARTED")
         joblist.append(j)
     for j in joblist:
-        print("Job %s from project %s logged as finished." % (j.id[-idlen:], projtag))
-        WriteLog(log_file, p.projtag, j.id, "FINISHED")
         p.removeJob(j)
         datachanged = 1
+        print("Job \"%s\" from project %s logged as finished." % (j.jobstr, projtag))
+        WriteLog(log_file, p.projtag, j.id, "FINISHED")
 
 if args['log']:
     projtag = args['PROJ']
@@ -552,13 +553,16 @@ if args['log']:
         exit()
     id = args['JOBID'][0]
     j = p.getJobByID(id)
+    if not j:
+        print "No job found with that id. No log entry made."
+        exit()
     if len(args['MESSAGE']) == 0:
         print "No message provided to enter into log."
         exit()
     logstr = ' '.join(args['MESSAGE'])
     WriteLog(log_file, p.projtag, j.id, "LOG: %s" % logstr)
     datachanged = 0  # log entries do not modify the job file
-    print "Note logged to job %s %s." % (p.projtag, id)
+    print "Note logged to job %s \"%s\"." % (p.projtag, j.jobstr)
 
 # This should be the last thing
 if args['-d']:
