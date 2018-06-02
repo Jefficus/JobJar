@@ -219,6 +219,14 @@ class Job(object):
         if '!' in self.flags:
             self.flags = self.flags.replace('!', '')
 
+    def sleep(self):
+        if '~' not in self.flags:
+            self.flags += '~'
+
+    def wake(self):
+        if '~' in self.flags:
+            self.flags = self.flags.replace('~', '')
+
     def start(self):
         if '*' not in self.flags:
             self.flags += '*'
@@ -226,27 +234,35 @@ class Job(object):
 
 class Project(object):
     def __init__(self, projtag):
-        self.projtag = projtag.strip()
         self.jobs = []
+        doflags = True
+        self.projtag = ''
+        self.flags = ''
+        for c in projtag.strip():
+            if doflags: 
+                if c in "~":
+                    self.flags += c
+                else:
+                    self.projtag += c
+                    doflags = False
+            else:
+                self.projtag += c
 
     def isInScope(self):
         if args['PROJ']:
             selector = args['PROJ'].lower()
             mytag = self.projtag.lower()
-            if self.projtag.startswith('~'):
-                return selector in [mytag[1:], mytag] 
-            else:
-                return selector == mytag
+            return mytag == selector
         else:
             return not self.isSleeping() or args['-a']
 
     def isSleeping(self):
-        return self.projtag.startswith('~')
+        return '~' in self.flags
 
     def tagMatches(self, intag):
         projtag = self.projtag.lower()
         intag = intag.lower()
-        return projtag == intag or '~' + projtag == intag
+        return projtag == intag
 
     def addJob(self, jobstr):
         j = Job(jobstr) 
@@ -256,6 +272,14 @@ class Project(object):
     def removeJob(self, j):
         if j in p.jobs:
             p.jobs.remove(j)
+
+    def sleep(self):
+        if '~' not in self.flags:
+            self.flags += '~'
+
+    def wake(self):
+        if '~' in self.flags:
+            self.flags = self.flags.replace('~', '')
 
     def getJobs(self):
         return [j for j in self.jobs if j.isInScope()]
@@ -313,7 +337,7 @@ if args['projects']:
         print "Current projects"
     for p in projects:
         if p.isInScope():
-            print "  %s" % p.projtag
+            print "  %s%s" % (p.flags, p.projtag)
 
 if args['list']:
     count = 0
@@ -321,7 +345,7 @@ if args['list']:
     for p in projects:
         if p.isInScope():
             count += 1
-            lines.append( "%s" % p.projtag)
+            lines.append( "%s%s" % (p.flags, p.projtag))
             scopedJobs = p.getJobs()
             for j in scopedJobs:
                 lines.append( "  (%s) %s" % (j.id[-idlen:], j.getLine()))
@@ -333,8 +357,6 @@ if args['list']:
     if diff:
         lines.append( "+%d sleeping projects" % (diff) )
         lines.append('')
-    #for l in lines:
-    #    print l
     print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
 
@@ -497,6 +519,70 @@ if args['unpick']:
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "UNPICKED")
 
+if args['sleep']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing put to sleep."
+        exit()
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No job with id %s in that project." % id
+            continue
+        if j.isSleeping():
+            print "Job \"%s\" is already asleep."%j.jobstr
+            continue
+        joblist.append(j)
+    if len(joblist):
+        for j in joblist:
+            j.sleep()
+            datachanged = 1
+            WriteLog(log_file, p.projtag, j.id, "SLEEP")
+            print "Job \"%s\" from project %s now sleeping" % (j.jobstr, p.projtag)
+    else:
+        if p.isSleeping():
+            print "Project \"%s\" is already asleep."%p.projtag
+            exit()
+        else:
+            p.sleep()
+            datachanged = 1
+            WriteLog(log_file, p.projtag, 0, "SLEEP")
+            print "Project %s now sleeping" % (p.projtag)
+
+if args['wake']:
+    projtag = args['PROJ']
+    p = GetProjectByTag(projtag)
+    if not p:
+        print "No such project exists. Nothing to wake."
+        exit()
+    joblist = []
+    for id in args['JOBID']:
+        j = p.getJobByID(id)
+        if not j:
+            print "No job with id %s in that project." % id
+            continue
+        if not j.isSleeping():
+            print "Job \"%s\" is already awake."%j.jobstr
+            continue
+        joblist.append(j)
+    if len(joblist):
+        for j in joblist:
+            j.wake()
+            datachanged = 1
+            WriteLog(log_file, p.projtag, j.id, "WAKE")
+            print "Job \"%s\" from project %s now awake" % (j.jobstr, p.projtag)
+    else:
+        if not p.isSleeping():
+            print "Project \"%s\" is already awake."%p.projtag
+            exit()
+        else:
+            p.wake()
+            datachanged = 1
+            WriteLog(log_file, p.projtag, 0, "WAKE")
+            print "Project %s now awake" % (p.projtag)
+
 if args['start']:
     projtag = args['PROJ']
     p = GetProjectByTag(projtag)
@@ -567,14 +653,14 @@ if args['log']:
 # This should be the last thing
 if args['-d']:
     for p in projects:
-        print "[%s]" % p.projtag
+        print "[%s%s]" % (p.flags, p.projtag)
         for j in p.jobs:
             print j.getLine()
         print
 elif datachanged:
     with open(todo_file, 'w') as fh:
         for p in projects:
-            fh.write("[%s]\n" % p.projtag)
+            fh.write("[%s%s]\n" % (p.flags, p.projtag))
             for j in p.jobs:
                 fh.write("%s\n" % j.getLine())
             fh.write("\n")
