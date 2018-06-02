@@ -88,10 +88,19 @@ if '-D' in args and args['-D']:
    todo_file = os.path.join(args['-D'], '.jobs.jb')
    log_file = os.path.join(args['-D'], '.log.jb')
 
-# if an override log date is provided, make sure it's in proper form
-if args['-w'] and not re.match("\d\d\d\d-\d\d-\d\d", args['-w']):
-    print "Date provided in -w option must be in the form YYYY-MM-DD"
-    exit()
+# determine what date should be shown in the log
+if args['-w']:
+    if re.match("\d\d\d\d-\d\d-\d\d", args['-w']):
+        log_date = args['-w']
+    elif args['-w'].lower() == 'yesterday':
+        dt = datetime.date.today() - datetime.timedelta(1)
+        log_date = dt.strftime("%Y-%m-%d")
+    else:
+        print "Date provided in -w option must be in the form YYYY-MM-DD"
+        exit()
+else:
+    log_date = datetime.datetime.now().strftime("%Y-%m-%d")
+mention("Logging date: %s" % log_date)
 
 idlen = 2
 projects = []
