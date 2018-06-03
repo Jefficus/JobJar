@@ -1,5 +1,0 @@
-jb -f test-jb/data.jb -l test-jb/datalog.jb today -a
-     Proj2: (6d) ! Today's new task
-     Proj2: (0e) !*An in-progress task revisited today
-~ProjSleep: (e6) !Active task in sleeping project
-     Proj3: (d3) ! New task for today in new project

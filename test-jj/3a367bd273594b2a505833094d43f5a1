@@ -1,2 +1,0 @@
-jb -f test-jb/data.jb -l test-jb/datalog.jb pick Proj2 6d -d
-That job is already picked.

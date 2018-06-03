@@ -1,4 +1,0 @@
-jb -f test-jb/data.jb -l test-jb/datalog.jb started
-     Proj1: (27) * Task already started
-     Proj2: (10) * Ongoing task in-progress
-     Proj2: (0e) !*An in-progress task revisited today

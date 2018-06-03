@@ -1,7 +1,0 @@
-jb -f test-jb/data.jb -l test-jb/datalog.jb projects -a
-All projects
-  Proj1
-  Proj2
-  ~ProjSleep
-  ~ProjSleep2
-  Proj3
