@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-   jb:    A simple command-line interface for managing
+   jj:    A simple command-line interface for managing
           multiple project to-do lists, creating note-histories
           for tasks done, and piecing together a daily task list
           from the "job jar" of todos still waiting to
@@ -30,23 +30,23 @@
           increase the number of digits shown in the id values.
 
    Usage: 
-      jb [options] stats
-      jb [options] projects
-      jb [options] add PROJ [JOBSTRING...]
-      jb [options] (list|picked|today|sleeping|started) [PROJ]
-      jb [options] (pick|unpick|start|finish) PROJ JOBID...
-      jb [options] delete PROJ [JOBID]
-      jb [options] report DATE [PROJ]
-      jb [options] log PROJ JOBID MESSAGE...
-      jb [options] sleep PROJ [JOBID...]
-      jb [options] wake PROJ [JOBID...]
-      jb -h | --help
-      jb -V | --version
+      jj [options] stats
+      jj [options] projects
+      jj [options] add PROJ [JOBSTRING...]
+      jj [options] (list|picked|today|sleeping|started) [PROJ]
+      jj [options] (pick|unpick|start|finish) PROJ JOBID...
+      jj [options] delete PROJ [JOBID]
+      jj [options] report DATE [PROJ]
+      jj [options] log PROJ JOBID MESSAGE...
+      jj [options] sleep PROJ [JOBID...]
+      jj [options] wake PROJ [JOBID...]
+      jj -h | --help
+      jj -V | --version
 
    Options:
       -d      # Dump modified data file to STDOUT rather than writing to file
       -a      # Report ALL projects/tasks, including ~-sleeping ones
-      -D PATH # Look in directory at PATH for .job.jb and .log.jb files
+      -D PATH # Look in directory at PATH for .job.jj and .log.jj files
       -i N    # Show N digits of the job id (defuault = 2)
       -w DT   # Use DT instead of today in the logs for current operation
       -y      # Required extra confirmation for extreme commands like 'delete'
@@ -65,7 +65,7 @@ from docopt import docopt
 
 
 # process command line args
-args = docopt(__doc__, version='jb version 0.0.1')
+args = docopt(__doc__, version='jj version 0.0.1')
 #print args
 
 def mention(outstr):
@@ -73,21 +73,21 @@ def mention(outstr):
         print outstr
 
 # by default, use the data files from the user's home directory
-todo_file = os.path.expanduser("~/.jobs.jb")
-log_file = os.path.expanduser("~/.log.jb")
+todo_file = os.path.expanduser("~/.jobs.jj")
+log_file = os.path.expanduser("~/.log.jj")
 
 # if they exist, use data files found in the current directory
 if os.getcwd() != os.path.expanduser("~"):
-    if os.path.exists(".jobs.jb"):
-        todo_file = ".jobs.jb"
+    if os.path.exists(".jobs.jj"):
+        todo_file = ".jobs.jj"
         print "Using job data file in current directory."
-    if os.path.exists(".log.jb"):
-        log_file = ".log.jb"
+    if os.path.exists(".log.jj"):
+        log_file = ".log.jj"
 
 # if the user explicitly specifies an override, use the provided files
 if '-D' in args and args['-D']:
-   todo_file = os.path.join(args['-D'], '.jobs.jb')
-   log_file = os.path.join(args['-D'], '.log.jb')
+   todo_file = os.path.join(args['-D'], '.jobs.jj')
+   log_file = os.path.join(args['-D'], '.log.jj')
 
 # determine what date should be shown in the log
 if args['-w']:
@@ -397,8 +397,8 @@ if args['started']:
     count = 0
     for p in projects:
         if p.isInScope():
-            jbs = p.getStartedJobs()
-            for j in jbs:
+            jjs = p.getStartedJobs()
+            for j in jjs:
                 print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:
@@ -408,8 +408,8 @@ if args['picked'] or args['today']:
     count = 0
     for p in projects:
         if p.isInScope():
-            jbs = p.getPickedJobs()
-            for j in jbs:
+            jjs = p.getPickedJobs()
+            for j in jjs:
                 print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:
@@ -420,8 +420,8 @@ if args['sleeping']:
     print "Sleeping Tasks:"
     for p in projects:
         if p.isInScope():
-            jbs = p.getSleepingJobs()
-            for j in jbs:
+            jjs = p.getSleepingJobs()
+            for j in jjs:
                 print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
                 count += 1
     if not count:

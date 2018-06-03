@@ -1,4 +1,4 @@
 .backups/*
-test-jb/datalog.jb
-.jobs.jb
-.log.jb
+test-jj/datalog.jj
+.jobs.jj
+.log.jj
