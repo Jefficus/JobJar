@@ -34,38 +34,38 @@ If you're looking for a stress-free way to plan your work, maybe JobJar is the t
 Useage
 ------
 
-   jj [options] stats
-   jj [options] projects
-   jj [options] add PROJ [JOBSTRING...]
-   jj [options] (list|picked|today|sleeping|started) [PROJ]
-   jj [options] (pick|unpick|start|finish) PROJ JOBID...
-   jj [options] delete PROJ [JOBID]
-   jj [options] report DATE [PROJ]
-   jj [options] log PROJ JOBID MESSAGE...
-   jj [options] sleep PROJ [JOBID...]
-   jj [options] wake PROJ [JOBID...]
-   jj -h | --help
-   jj -V | --version
+   jj [options] stats  
+   jj [options] projects  
+   jj [options] add PROJ [JOBSTRING...]  
+   jj [options] (list|picked|today|sleeping|started) [PROJ]  
+   jj [options] (pick|unpick|start|finish) PROJ JOBID...  
+   jj [options] delete PROJ [JOBID]  
+   jj [options] report DATE [PROJ]  
+   jj [options] log PROJ JOBID MESSAGE...  
+   jj [options] sleep PROJ [JOBID...]  
+   jj [options] wake PROJ [JOBID...]  
+   jj -h | --help  
+   jj -V | --version  
 
 Options
 -------
-   -d      # Dump modified data file to STDOUT rather than saving to file
-   -a      # Report on ALL projects/tasks, including the sleeping ones
-   -D PATH # Look in directory at PATH for .job.jj and .log.jj files
-   -i N    # Show N digits of the job id (defuault = 2)
-   -w DT   # Log the current operation with date DT instead of today
-   -y      # Required extra confirmation for extreme commands like 'delete'
-   -v      # Display verbose output
-   -V      # Display version information
+   -d      # Dump modified data file to STDOUT rather than saving to file  
+   -a      # Report on ALL projects/tasks, including the sleeping ones  
+   -D PATH # Look in directory at PATH for .job.jj and .log.jj files  
+   -i N    # Show N digits of the job id (defuault = 2)  
+   -w DT   # Log the current operation with date DT instead of today  
+   -y      # Required extra confirmation for extreme commands like 'delete'  
+   -v      # Display verbose output  
+   -V      # Display version information  
 
 Flags
 -----
 
 A task can have any combination of three status flags. Jobs can be created with these flags already set by prefixing the job description with any combination of these flags. (This is faster than creating the job and then running sleep/pick/start commands.) 
 
- - * marks a task as started or in-progress
- - ! marks a task as being picked for work today
- - ~ marks a project or task as sleeping
+ - &ast; marks a task as started or in-progress  
+ - ! marks a task as being picked for work today  
+ - ~ marks a project or task as sleeping  
 
 Sleeping projects and tasks are excluded from reports unless the -a option is present.
 
