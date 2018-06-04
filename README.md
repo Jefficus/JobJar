@@ -81,5 +81,5 @@ By default, JobJar looks at the user's home directory for two files: .jobs.jj an
 
 
 
-Created 2018 by Jefferson Smith <jefferson@smithicus.com>
+Created 2018 by Jefferson Smith  
 Check out my tools, videos, and novels at http://creativityhacker.ca
