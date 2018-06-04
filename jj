@@ -89,6 +89,17 @@ if '-D' in args and args['-D']:
    todo_file = os.path.join(args['-D'], '.jobs.jj')
    log_file = os.path.join(args['-D'], '.log.jj')
 
+def getDateArg(instr):
+    if re.match("\d\d\d\d-\d\d-\d\d", instr.strip()):
+        return instr.strip()
+    elif instr.lower() == 'today':
+        dt = datetime.date.today()
+        return dt.strftime("%Y-%m-%d")
+    elif instr.lower() == 'yesterday':
+        dt = datetime.date.today() - datetime.timedelta(1)
+        return dt.strftime("%Y-%m-%d")
+    return None
+
 # determine what date should be shown in the log
 if args['-w']:
     dstr =  getDateArg(args['-w'])
@@ -118,22 +129,8 @@ YYYY-MM-DD PROJ JOBID Message...
 
 def WriteLog(logfile, projtag, jobid, msg):
     with open(logfile, 'a') as fh:
-        if args['-w']:
-                dt = args['-w']
-        else:
-            dt = datetime.datetime.now().strftime("%Y-%m-%d")
-        fh.write("%s %s %s %s\n" % (dt, projtag, jobid, msg))
+        fh.write("%s %s %s %s\n" % (log_date, projtag, jobid, msg))
 
-def getDateArg(instr):
-    if re.match("\d\d\d\d-\d\d-\d\d", instr.strip()):
-        return instr.strip()
-    elif instr.lower() == 'today':
-        dt = datetime.date.today()
-        return dt.strftime("%Y-%m-%d")
-    elif instr.lower() == 'yesterday':
-        dt = datetime.date.today() - datetime.timedelta(1)
-        return dt.strftime("%Y-%m-%d")
-    return None
 
 def breakline(line, width):
     head = ''
