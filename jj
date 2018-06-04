@@ -39,6 +39,7 @@
       jj [options] report DATE [PROJ]
       jj [options] log PROJ JOBID MESSAGE...
       jj [options] sleep PROJ [JOBID...]
+      jj [options] search TERM...
       jj [options] wake PROJ [JOBID...]
       jj -h | --help
       jj -V | --version
@@ -291,6 +292,16 @@ class Project(object):
     def getJobs(self):
         return [j for j in self.jobs if j.isInScope()]
 
+    def searchJobs(self, terms):
+        # search for any term, case-insensitive
+        hits = []
+        for j in self.jobs:
+            for term in terms:
+                if term.lower() in j.jobstr.lower():
+                    hits.append(j)
+                    break
+        return hits
+
     def getJobByID(self, id):
         hits = []
         for j in self.jobs:
@@ -364,6 +375,21 @@ if args['list']:
     if diff:
         lines.append( "+%d sleeping projects" % (diff) )
         lines.append('')
+    print_multi(lines, columnwide=40, wrapindent = 5+idlen)
+
+if args['search']:
+    count = 0
+    lines = []
+    terms = args['TERM']
+    for p in projects:
+        if p.isInScope():
+            count += 1
+            scopedJobs = p.searchJobs(terms)
+            if len(scopedJobs):
+                lines.append( "%s%s" % (p.flags, p.projtag))
+                for j in scopedJobs:
+                    lines.append( "  (%s) %s" % (j.id[-idlen:], j.getLine()))
+                lines.append('')
     print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
 if args['report']:
