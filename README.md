@@ -2,7 +2,7 @@ JobJar: The multi-project todo management tool for people who don't like schedul
 
 Origin
 ------
-I have a lot of projects on the go, sometimes as many as a dozen at a time, each with a dozen or more todos required to get from start to finish. But I like the freedom to jump back and forth between propjects, meandering my way through the forest of joblets, going where my whim of the day takes me, while still managing to push projects regularly onto the completed pile.
+I have a lot of projects on the go, sometimes as many as a dozen at a time, each with a dozen or more todos required to get from start to finish. But I like the freedom to jump back and forth between projects, meandering my way through the forest of joblets, going where my whim of the day takes me, while still managing to push projects regularly onto the completed pile.
 
 This system of time management works for me. It keeps me productive, keeps me creative, and despite the seeming chaos of my path through it all, projects keep getting finished. Novels, videos, software projects---they all sit on the stove, each getting stirred and seasoned according to my shifting moods, yet still all progressing steadily and getting realeased into the world as I finish with them.
 

@@ -170,7 +170,7 @@ def print_multi(linelist, columnwide, wrapindent=4):
     # see if we can find a line after the half-way point
     # that begins in the first column. Only break on those lines
     newcol = 0
-    for i in range(len(newlines)/2, len(newlines)):
+    for i in range(len(newlines)/3, len(newlines)):
         if newlines[i] and newlines[i][0] != ' ':
             newcol = i
             break
