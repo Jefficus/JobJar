@@ -497,8 +497,8 @@ if args['add']:
         jstr = ' '.join(args['JOBSTRING'])
         j = p.addJob(jstr)
         datachanged = 1
-        print "Job \"%s\" added to project %s."%(j.jobstr, p.projtag)
-        WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr)
+        print "Job \"%s\" added to project %s."%(j.getLine(), p.projtag)
+        WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr.strip())
 
 if args['delete']:
     if not args['-y']:
@@ -529,7 +529,7 @@ if args['delete']:
         p.removeJob(j)
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "DELETED")
-        print "Job \"%s\" deleted from project %s" % (j.jobstr, p.projtag)
+        print "Job \"%s\" deleted from project %s" % (j.getLine(), p.projtag)
 
 if args['pick']:
     projtag = args['PROJ']
@@ -544,14 +544,14 @@ if args['pick']:
             print "No job with id %s in that project." % id
             continue
         if j.isPicked():
-            print "Job \"%s\" is already picked."%j.jobstr
+            print "Job \"%s\" is already picked."%j.getLine()
             continue
         joblist.append(j)
     for j in joblist:
         j.pick()
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "PICKED")
-        print "Job \"%s\" from project %s picked" % (j.jobstr, p.projtag)
+        print "Job \"%s\" from project %s picked" % (j.getLine(), p.projtag)
 
 if args['unpick']:
     projtag = args['PROJ']
@@ -563,15 +563,15 @@ if args['unpick']:
     for id in args['JOBID']:
         j = p.getJobByID(id)
         if not j:
-            print "No jobwith id %s in that project." % id
+            print "No job with id %s in that project." % id
             continue
         if not j.isPicked():
             print "Job %s is not picked so it cannot be unpicked."%id
             continue
         joblist.append(j)
     for j in joblist:
-        print "Job \"%s\" from project %s unpicked" % (j.jobstr, p.projtag)
         j.unpick()
+        print "Job \"%s\" from project %s unpicked" % (j.getLine(), p.projtag)
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "UNPICKED")
 
@@ -588,7 +588,7 @@ if args['sleep']:
             print "No job with id %s in that project." % id
             continue
         if j.isSleeping():
-            print "Job \"%s\" is already asleep."%j.jobstr
+            print "Job \"%s\" is already asleep."%j.getLine()
             continue
         joblist.append(j)
     if len(joblist):
@@ -596,7 +596,7 @@ if args['sleep']:
             j.sleep()
             datachanged = 1
             WriteLog(log_file, p.projtag, j.id, "SLEEP")
-            print "Job \"%s\" from project %s now sleeping" % (j.jobstr, p.projtag)
+            print "Job \"%s\" from project %s now sleeping" % (j.getLine(), p.projtag)
     else:
         if p.isSleeping():
             print "Project \"%s\" is already asleep."%p.projtag
@@ -620,7 +620,7 @@ if args['wake']:
             print "No job with id %s in that project." % id
             continue
         if not j.isSleeping():
-            print "Job \"%s\" is already awake."%j.jobstr
+            print "Job \"%s\" is already awake."%j.getLine()
             continue
         joblist.append(j)
     if len(joblist):
@@ -628,7 +628,7 @@ if args['wake']:
             j.wake()
             datachanged = 1
             WriteLog(log_file, p.projtag, j.id, "WAKE")
-            print "Job \"%s\" from project %s now awake" % (j.jobstr, p.projtag)
+            print "Job \"%s\" from project %s now awake" % (j.getLine(), p.projtag)
     else:
         if not p.isSleeping():
             print "Project \"%s\" is already awake."%p.projtag
@@ -658,7 +658,7 @@ if args['start']:
     for j in joblist:
         j.start()
         datachanged = 1
-        print "Job \"%s\" from project %s started" % (j.jobstr, p.projtag)
+        print "Job \"%s\" from project %s started" % (j.getLine(), p.projtag)
         WriteLog(log_file, p.projtag, j.id, "STARTED")
 
 if args['finish']:
@@ -680,7 +680,7 @@ if args['finish']:
     for j in joblist:
         p.removeJob(j)
         datachanged = 1
-        print("Job \"%s\" from project %s logged as finished." % (j.jobstr, projtag))
+        print("Job \"%s\" from project %s logged as finished." % (j.getLine(), projtag))
         WriteLog(log_file, p.projtag, j.id, "FINISHED")
 
 if args['log']:
@@ -704,7 +704,7 @@ if args['log']:
     logstr = ' '.join(args['MESSAGE'])
     WriteLog(log_file, p.projtag, j.id, "LOG: %s" % logstr)
     datachanged = 0  # log entries do not modify the job file
-    print "Note logged to job %s \"%s\"." % (p.projtag, j.jobstr)
+    print "Note logged to job %s \"%s\"." % (p.projtag, j.getLine())
 
 # This should be the last thing
 if args['-d']:
