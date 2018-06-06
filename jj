@@ -501,10 +501,6 @@ if args['add']:
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr.strip())
 
 if args['delete']:
-    if not args['-y']:
-        print "Deletion cannot be undone, so confirmation is required."
-        print "If you really mean it, run the command again with the -y option."
-        exit()
     p = GetProjectByTag(args['PROJ'])
     if not p:
         print "No such project exists. Nothing to delete."
@@ -525,6 +521,11 @@ if args['delete']:
         j = p.getJobByID(id)
         if not j:
             print "No such JOBID (%s) in that project. Nothing to delete." % id
+            exit()
+        if not args['-y']:
+            print "Deletion cannot be undone, so confirmation is required."
+            print "TARGETED JOB: %s" % j.getLine()
+            print "If you really mean it, run the command again with the -y option."
             exit()
         p.removeJob(j)
         datachanged = 1
