@@ -167,23 +167,39 @@ def print_multi(linelist, columnwide, wrapindent=4):
     cols = int((termwide/columnwide))
     gap = int( (termwide-(cols*columnwide))/(cols-1) )
 
-    # see if we can find a line after the half-way point
-    # that begins in the first column. Only break on those lines
-    newcol = 0
-    for i in range(len(newlines)/3, len(newlines)):
+    # see if we can find the headline nearest the half-way point.
+    # Headlines are lines that begin in the first column.
+    headlines = []
+    for i in range(0, len(newlines)):
         if newlines[i] and newlines[i][0] != ' ':
+            headlines.append(i)
+    newcol = 0
+    newcoldist = 10000
+    midi = len(newlines)/2
+    for i in headlines:
+        dist = abs(i-midi)
+        if dist < newcoldist:
+            newcoldist = dist
             newcol = i
-            break
+    # newcol is now the headline closest to the midpoint 
+    # of all the lines to be printed
 
     # third step, start printing
     if newcol:
-        for i in range(0, newcol):
-            if newcol + i < len(newlines):
-                l = newlines[i].ljust(columnwide)
-                l += ' '*gap + newlines[newcol+i]
-            else:
-                l = newlines[i]
+        i = 0
+        j = newcol
+        numlines = len(newlines)
+        while i < newcol or j < numlines:
+            left = ''
+            if i < newcol:
+                left = newlines[i]
+            right = ''
+            if j < numlines:
+                right = newlines[j]
+            l = left.ljust(columnwide) + ' '*gap + right
             print l
+            i += 1
+            j += 1
     else:
         for l in newlines:
             print l
