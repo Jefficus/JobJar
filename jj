@@ -36,6 +36,7 @@
       jj [options] (list|picked|today|sleeping|started) [PROJ]
       jj [options] (pick|unpick|start|finish) PROJ JOBID...
       jj [options] delete PROJ [JOBID]
+      jj [options] mv PROJFROM PROJTO JOBID...
       jj [options] report DATE [PROJ]
       jj [options] log PROJ JOBID MESSAGE...
       jj [options] sleep PROJ [JOBID...]
@@ -297,8 +298,11 @@ class Project(object):
         return j
 
     def removeJob(self, j):
-        if j in p.jobs:
-            p.jobs.remove(j)
+        if j in self.jobs:
+            self.jobs.remove(j)
+    
+    def insertJob(self, j):
+        self.jobs.append(j)
 
     def sleep(self):
         if '~' not in self.flags:
@@ -598,6 +602,32 @@ if args['unpick']:
         print "Job \"%s\" from project %s unpicked" % (j.getLine(), p.projtag)
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "UNPICKED")
+
+if args['mv']:
+    projfromtag = args['PROJFROM']
+    projtotag = args['PROJTO']
+    pfrom = GetProjectByTag(projfromtag)
+    if not pfrom:
+        print "No such project (%s) exists. No project to move from." % projfromtag
+        exit()
+    pto = GetProjectByTag(projtotag)
+    if not pto:
+        print "No such project (%s) exists. No project to move to." % projtotag
+        exit()
+    joblist = []
+    for id in args['JOBID']:
+        j = pfrom.getJobByID(id)
+        if not j:
+            print "No job with id %s in project %s. Aborting." % (id, projfromtag)
+            exit()
+        joblist.append(j)
+    for j in joblist:
+        pfrom.removeJob(j)
+        pto.insertJob(j)
+        print "Job \"%s\" moved from project %s to project %s" % (j.getLine(), pfrom.projtag, pto.projtag)
+        datachanged = 1
+        WriteLog(log_file, pfrom.projtag, j.id, "MOVEDFROM")
+        WriteLog(log_file, pto.projtag, j.id, "MOVEDTO")
 
 if args['sleep']:
     projtag = args['PROJ']
