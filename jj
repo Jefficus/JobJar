@@ -473,7 +473,8 @@ if args['did']:
         for projtag in projlines:
             outlines.append(projtag)
             for jobstr in projlines[projtag]:
-                outlines.append( "   " + jobstr)
+                chkmrk = u"\u2713"
+                outlines.append( " " + chkmrk + " " + jobstr)
             outlines.append('   ')
         print_multi(outlines, columnwide=40, wrapindent = 3)
     else:
