@@ -380,7 +380,9 @@ if args['projects']:
     for p in projects:
         if p.isInScope():
             lines.append("%s%s" % (p.flags, p.projtag))
-    print_multi(lines, columnwide=40, wrapindent = 0)
+    # sort lines to put all sleepers together in the list
+    slines = sorted(lines)
+    print_multi(slines, columnwide=40, wrapindent = 0)
 
 if args['list']:
     count = 0
