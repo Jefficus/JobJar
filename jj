@@ -37,7 +37,7 @@
       jj [options] (pick|unpick|start|finish) PROJ JOBID...
       jj [options] delete PROJ [JOBID]
       jj [options] mv PROJFROM PROJTO JOBID...
-      jj [options] report DATE [PROJ]
+      jj [options] (report|did) DATE [PROJ]
       jj [options] log PROJ JOBID MESSAGE...
       jj [options] sleep PROJ [JOBID...]
       jj [options] search TERM...
@@ -444,6 +444,40 @@ if args['report']:
             print "   " + line
         print
 
+if args['did']:
+    dstr = getDateArg(args['DATE'])
+    if dstr:
+        target_date = dstr
+    else:
+        print "Report date must be in the form YYYY-MM-DD or the word 'yesterday'."
+        exit()
+    count = 0
+    projlines = {}
+    print "Jobs completed on %s" % dstr
+    with open(log_file, 'r') as fh:
+        for l in fh.readlines():
+            line = l.strip()
+            words = line.split()
+            if words[0] == target_date and words[3] == "FINISHED":
+                projtag = words[1]
+                if not projtag in projlines:
+                    projlines[projtag] = []
+                id = words[2][-2:]
+                jobstr = ''
+                if len(words) > 4:
+                    jobstr = ' '.join(words[3:])
+                projlines[projtag].append("%s %s" % (id, jobstr))
+    if len(projlines):
+        outlines = []
+        for projtag in projlines:
+            outlines.append(projtag)
+            for jobstr in projlines[projtag]:
+                outlines.append( "   " + jobstr)
+            outlines.append('   ')
+        print_multi(outlines, columnwide=40, wrapindent = 3)
+    else:
+        print "None"
+
 if args['started']:
     count = 0
     for p in projects:
@@ -738,7 +772,7 @@ if args['finish']:
         p.removeJob(j)
         datachanged = 1
         print("Job \"%s\" from project %s logged as finished." % (j.getLine(), projtag))
-        WriteLog(log_file, p.projtag, j.id, "FINISHED")
+        WriteLog(log_file, p.projtag, j.id, "FINISHED %s"%j.jobstr)
 
 if args['log']:
     projtag = args['PROJ']
