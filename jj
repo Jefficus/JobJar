@@ -372,9 +372,11 @@ if args['projects']:
         print "All projects"
     else:
         print "Current projects"
+    lines = []
     for p in projects:
         if p.isInScope():
-            print "  %s%s" % (p.flags, p.projtag)
+            lines.append("%s%s" % (p.flags, p.projtag))
+    print_multi(lines, columnwide=40, wrapindent = 0)
 
 if args['list']:
     count = 0
@@ -459,24 +461,26 @@ if args['picked'] or args['today']:
 
 if args['sleeping']:
     count = 0
-    print "Sleeping Tasks:"
+    lines = []
+    lines.append( "Sleeping Tasks:" )
     for p in projects:
         if p.isInScope():
             jjs = p.getSleepingJobs()
             for j in jjs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine())
+                lines.append( "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine()) )
                 count += 1
     if not count:
-        print "None".rjust(10)
-    print
-    print "Sleeping Projects:"
+        lines.append( "None".rjust(10) )
+    lines.append('')
+    lines.append( "Sleeping Projects:" )
     count = 0
     for p in projects:
         if p.isSleeping():
-            print "%s"% p.projtag.rjust(10)
+            lines.append( "%s"% p.projtag.rjust(10) )
             count += 1
     if not count:
-        print "None".rjust(10)
+        lines.append( "None".rjust(10) )
+    print_multi(lines, columnwide=40, wrapindent = 10+5+idlen)
 
 if args['stats']:
     jobcount = 0
