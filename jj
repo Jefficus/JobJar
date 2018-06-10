@@ -223,6 +223,9 @@ class Job(object):
     def getLine(self):
         return "%s%s" % (self.flags, self.jobstr)
 
+    def getIDTag(self):
+        return self.id[-idlen:]
+
     def isSleeping(self):
         return '~' in self.flags
 
@@ -382,7 +385,7 @@ if args['list']:
             lines.append( "%s%s" % (p.flags, p.projtag))
             scopedJobs = p.getJobs()
             for j in scopedJobs:
-                lines.append( "  (%s) %s" % (j.id[-idlen:], j.getLine()))
+                lines.append( "  (%s) %s" % (j.getIDTag(), j.getLine()))
             diff = len(p.jobs) - len(scopedJobs)
             if diff:
                 lines.append( "    %s +%d sleeping tasks" % (" "*idlen, diff) )
@@ -404,7 +407,7 @@ if args['search']:
             if len(scopedJobs):
                 lines.append( "%s%s" % (p.flags, p.projtag))
                 for j in scopedJobs:
-                    lines.append( "  (%s) %s" % (j.id[-idlen:], j.getLine()))
+                    lines.append( "  (%s) %s" % (j.getIDTag(), j.getLine()))
                 lines.append('')
     print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
@@ -438,7 +441,7 @@ if args['started']:
         if p.isInScope():
             jjs = p.getStartedJobs()
             for j in jjs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -449,7 +452,7 @@ if args['picked'] or args['today']:
         if p.isInScope():
             jjs = p.getPickedJobs()
             for j in jjs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine())
                 count += 1
     if not count:
         print "No jobs picked for today."
@@ -461,7 +464,7 @@ if args['sleeping']:
         if p.isInScope():
             jjs = p.getSleepingJobs()
             for j in jjs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.id[-idlen:], j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine())
                 count += 1
     if not count:
         print "None".rjust(10)
@@ -513,7 +516,7 @@ if args['add']:
         jstr = ' '.join(args['JOBSTRING'])
         j = p.addJob(jstr)
         datachanged = 1
-        print "Job \"%s\" added to project %s."%(j.getLine(), p.projtag)
+        print "Job #%s \"%s\" added to project %s."%(j.getIDTag(), j.getLine(), p.projtag)
         WriteLog(log_file, p.projtag, j.id, "CREATED: %s"%j.jobstr.strip())
 
 if args['delete']:
