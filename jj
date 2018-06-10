@@ -629,8 +629,8 @@ if args['mv']:
         pto.insertJob(j)
         print "Job \"%s\" moved from project %s to project %s" % (j.getLine(), pfrom.projtag, pto.projtag)
         datachanged = 1
-        WriteLog(log_file, pfrom.projtag, j.id, "MOVEDFROM")
-        WriteLog(log_file, pto.projtag, j.id, "MOVEDTO")
+        WriteLog(log_file, pfrom.projtag, j.id, "MOVEDTO %s"%pto.projtag)
+        WriteLog(log_file, pto.projtag, j.id, "MOVEDFROM %s"%pfrom.projtag)
 
 if args['sleep']:
     projtag = args['PROJ']
