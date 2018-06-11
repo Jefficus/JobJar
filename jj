@@ -219,6 +219,7 @@ class Job(object):
                     doflags = False
             else:
                 self.jobstr += c
+        self.flags = ''.join(sorted(self.flags))
         self.id = hashlib.md5(self.jobstr.strip()).hexdigest()
 
     def getLine(self):
@@ -241,7 +242,7 @@ class Job(object):
 
     def pick(self):
         if '!' not in self.flags:
-            self.flags += '!'
+            self.flags = ''.join(sorted(self.flags + '!'))
 
     def unpick(self):
         if '!' in self.flags:
@@ -249,7 +250,7 @@ class Job(object):
 
     def sleep(self):
         if '~' not in self.flags:
-            self.flags += '~'
+            self.flags = ''.join(sorted(self.flags + '~'))
 
     def wake(self):
         if '~' in self.flags:
@@ -257,7 +258,7 @@ class Job(object):
 
     def start(self):
         if '*' not in self.flags:
-            self.flags += '*'
+            self.flags = ''.join(sorted(self.flags + '*'))
 
 
 class Project(object):
