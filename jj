@@ -166,7 +166,11 @@ def print_multi(linelist, columnwide, wrapindent=4):
     th, tw = os.popen('stty size', 'r').read().split()
     termwide = int(tw)
     cols = int((termwide/columnwide))
-    gap = int( (termwide-(cols*columnwide))/(cols-1) )
+    gap = 0
+    if cols == 1:
+        columnwide = termwide
+    else:
+        gap = int( (termwide-(cols*columnwide))/(cols-1) )
 
     # see if we can find the headline nearest the half-way point.
     # Headlines are lines that begin in the first column.
@@ -186,7 +190,7 @@ def print_multi(linelist, columnwide, wrapindent=4):
     # of all the lines to be printed
 
     # third step, start printing
-    if newcol:
+    if newcol and cols > 1:
         i = 0
         j = newcol
         numlines = len(newlines)
