@@ -223,11 +223,15 @@ class Job(object):
                     doflags = False
             else:
                 self.jobstr += c
+        self.jobstr = self.jobstr.strip()
         self.flags = ''.join(sorted(self.flags))
-        self.id = hashlib.md5(self.jobstr.strip()).hexdigest()
+        self.id = hashlib.md5(self.jobstr).hexdigest()
 
     def getLine(self):
-        return "%s%s" % (self.flags, self.jobstr)
+        if self.flags:
+            return "%s %s" % (self.flags, self.jobstr)
+        else:
+            return "%s" % (self.jobstr)
 
     def getIDTag(self):
         return self.id[-idlen:]
