@@ -404,10 +404,12 @@ if args['list']:
                 lines.append("    ")
                 lines.append("    %s +%d sleeping tasks" % (" "*idlen, diff))
             lines.append('')
-    diff = len(projects) - count
-    if diff:
-        lines.append( "+%d sleeping projects" % (diff) )
-        lines.append('')
+    if not args['PROJ']: 
+        # don't show sleeping proj count unless listing all projects
+        diff = len(projects) - count
+        if diff:
+            lines.append( "+%d sleeping projects" % (diff) )
+            lines.append('')
     print_multi(lines, columnwide=40, wrapindent = 5+idlen)
 
 if args['search']:
