@@ -322,7 +322,8 @@ class Project(object):
             self.flags = self.flags.replace('~', '')
 
     def getJobs(self):
-        return [j for j in self.jobs if j.isInScope()]
+        return sorted([j for j in self.jobs if j.isInScope()],
+                        key=lambda x: x.flags, reverse=True)
 
     def searchJobs(self, terms):
         # search for any term, case-insensitive
