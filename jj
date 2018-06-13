@@ -521,7 +521,8 @@ if args['picked'] or args['today']:
         if p.isInScope():
             jjs = p.getPickedJobs()
             for j in jjs:
-                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(), j.getLine())
+                print "%s: (%s) %s"% (p.projtag.rjust(10), j.getIDTag(),
+                        j.getLine().replace('!','').strip())
                 count += 1
     if not count:
         print "No jobs picked for today."
