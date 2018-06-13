@@ -209,6 +209,18 @@ def print_multi(linelist, columnwide, wrapindent=4):
         for l in newlines:
             print l
 
+def JobOrdering(a, b):
+    """We want ~ jobs to display at the end, and all other flagged jobs
+       to display at the top."""
+    if '~' in a and '~' in b:
+        return cmp(a,b)
+    elif '~' in a:
+        return 1
+    elif '~' in b:
+        return -1
+    else:
+        return -1*cmp(a,b)
+
 class Job(object):
     def __init__(self, jobstr):
         doflags = True
@@ -224,7 +236,7 @@ class Job(object):
             else:
                 self.jobstr += c
         self.jobstr = self.jobstr.strip()
-        self.flags = ''.join(sorted(self.flags))
+        self.flags = ''.join(sorted(self.flags, reverse=True)) # sort ~ to front
         self.id = hashlib.md5(self.jobstr).hexdigest()
 
     def getLine(self):
@@ -250,7 +262,7 @@ class Job(object):
 
     def pick(self):
         if '!' not in self.flags:
-            self.flags = ''.join(sorted(self.flags + '!'))
+            self.flags = ''.join(sorted(self.flags + '!', reverse=True))
 
     def unpick(self):
         if '!' in self.flags:
@@ -258,7 +270,7 @@ class Job(object):
 
     def sleep(self):
         if '~' not in self.flags:
-            self.flags = ''.join(sorted(self.flags + '~'))
+            self.flags = ''.join(sorted(self.flags + '~', reverse=True))
 
     def wake(self):
         if '~' in self.flags:
@@ -266,7 +278,7 @@ class Job(object):
 
     def start(self):
         if '*' not in self.flags:
-            self.flags = ''.join(sorted(self.flags + '*'))
+            self.flags = ''.join(sorted(self.flags + '*', reverse=True))
 
 
 class Project(object):
@@ -323,7 +335,7 @@ class Project(object):
 
     def getJobs(self):
         return sorted([j for j in self.jobs if j.isInScope()],
-                        key=lambda x: x.flags, reverse=True)
+                        key=lambda x: x.flags, cmp=JobOrdering)
 
     def searchJobs(self, terms):
         # search for any term, case-insensitive
