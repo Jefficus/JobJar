@@ -1,11 +1,11 @@
 [Novel]
-~Find a good editor
+~ Find a good editor
 * Turn the outline into golden prose
 ~* Spinning in circles
-!Write the battle scene
-!~ Take a nap
+! Write the battle scene
+~! Take a nap
 Find a better name for the hero than, "Bob."
-!*~ Breath deeply
+~*! Breath deeply
 This is an intentionally long entry that demonstrates how the list routine wraps long entries and indents them. So you don't have to be miserly with your text if you don't want to be.
 
 [Video]
@@ -19,8 +19,8 @@ Animate virtual characters
 Integrate animation with photography
 Do final edit
 Render video to final mp4
-~Upload to YouTube
-~Submit film to award programs
+~ Upload to YouTube
+~ Submit film to award programs
 
 [~Music]
 Record the drums
