@@ -35,7 +35,7 @@
       jj [options] add PROJ [JOBSTRING...]
       jj [options] (list|picked|today|sleeping|started) [PROJ]
       jj [options] (pick|unpick|start) PROJ JOBID...
-      jj [options] delete PROJ [JOBID]
+      jj [options] (delete|history) PROJ [JOBID]
       jj [options] finish PROJ JOBID [MESSAGE...]
       jj [options] mv PROJFROM PROJTO JOBID...
       jj [options] (report|did) DATE [PROJ]
@@ -623,6 +623,47 @@ if args['delete']:
         datachanged = 1
         WriteLog(log_file, p.projtag, j.id, "DELETED")
         print "Job \"%s\" deleted from project %s" % (j.getLine(), p.projtag)
+
+class LogLine(object):
+    def __init__(self, inline):
+        words = inline.strip().split()
+        self.date = words[0]
+        self.projtag = words[1].lower()
+        self.jobid = words[2].lower()
+        self.command = words[3].lower()
+        if self.command.endswith(':'):
+            self.command = self.command[:-1]
+        self.text = ''
+        if len(words) > 4:
+            self.text = ' '.join(words[4:])
+
+    def isInScope(self):
+        if args['PROJ']:
+            return args['PROJ'].lower() in self.projtag 
+        return False
+
+def LoadLog():
+    lines = []
+    joblabels = {}
+    with open(log_file, 'r') as fh:
+        for line in fh.readlines():
+            log = LogLine(line)
+            lines.append(log)
+            if log.command.lower() == 'created' and log.jobid != '0':
+                joblabels[log.jobid] = log.text
+    return lines, joblabels
+
+if args['history']:
+    reportworthy = ['started', 'finished', 'log']
+    loglines, joblabels = LoadLog()
+    for log in loglines:
+        if log.isInScope():
+            if log.command in reportworthy:
+                jobstr = log.jobid
+                if log.jobid in joblabels.keys():
+                    jobstr = joblabels[log.jobid]
+                print "%s %s %s %s" % (log.date, log.command, jobstr, log.text)
+
 
 if args['pick']:
     projtag = args['PROJ']
